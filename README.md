@@ -1,6 +1,6 @@
-# My Portfolio Website
+# My Portfolio Website - Multi-Tenant SaaS Platform
 
-A modern, responsive portfolio website built with React.js and Supabase, featuring a blog, portfolio showcase, contact form, and admin CMS.
+A modern, responsive **Multi-Tenant Portfolio Platform** built with React.js and Supabase. Each user gets their own portfolio with custom URL (/{slug}), featuring blog, projects showcase, contact form, and full admin CMS.
 
 ## Features
 
@@ -21,6 +21,10 @@ A modern, responsive portfolio website built with React.js and Supabase, featuri
 - 📝 **NEW!** Professional WYSIWYG editor with CKEditor 5 (formatting, tables, links, etc!)
 - 📊 **NEW!** Order & Publish control (sort projects, save as draft/published!)
 - 🔍 **NEW!** Global search with real-time filtering (search by name, tech, description!)
+- 🏢 **NEW!** Multi-Tenant Architecture - Each user gets own portfolio with /{slug} URL!
+- 👥 **NEW!** Complete data isolation - Users only see their own data
+- ⚙️ **NEW!** Portfolio Settings - Customize slug, bio, social links, theme color
+- 🔒 **NEW!** Row Level Security - Database-level data protection per user
 
 ## Tech Stack
 
@@ -320,6 +324,7 @@ This project includes comprehensive documentation:
 - **WYSIWYG_EDITOR.md** - 🆕 Rich text editor with CKEditor 5 guide
 - **ORDER_AND_PUBLISH_FEATURE.md** - 🆕 Order & Publish control guide
 - **SEARCH_FEATURE.md** - 🆕 Global search with real-time filtering guide
+- **MULTI_TENANT_GUIDE.md** - 🆕 🏢 Multi-Tenant SaaS Architecture guide ⭐⭐
 - **MIGRATION_GUIDE.md** - Database migrations guide (Laravel-style) ⭐
 - **LARAVEL_VS_SUPABASE.md** - Comparison between Laravel and Supabase migrations
 

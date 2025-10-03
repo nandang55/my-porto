@@ -5,6 +5,7 @@ import { supabase } from '../../services/supabase';
 import RichTextEditor from '../../components/RichTextEditor';
 import BackButton from '../../components/BackButton';
 import { useAlert } from '../../context/AlertContext';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminBlog = () => {
   const [posts, setPosts] = useState([]);
@@ -14,16 +15,20 @@ const AdminBlog = () => {
   const [content, setContent] = useState('');
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const alert = useAlert();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
   const fetchPosts = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
+        .eq('user_id', user.id) // Only fetch current user's posts
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -42,6 +47,7 @@ const AdminBlog = () => {
         excerpt: data.excerpt,
         content: content, // Use content from state (rich text HTML)
         slug: data.slug || data.title.toLowerCase().replace(/\s+/g, '-'),
+        user_id: user.id, // Link to current user
       };
 
       if (editingPost) {

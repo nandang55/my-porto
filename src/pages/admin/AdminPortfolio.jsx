@@ -9,6 +9,7 @@ import RichTextEditor from '../../components/RichTextEditor';
 import SearchBar from '../../components/SearchBar';
 import BackButton from '../../components/BackButton';
 import { useAlert } from '../../context/AlertContext';
+import { useAuth } from '../../context/AuthContext';
 import { getTextPreview, stripHtml } from '../../utils/textHelpers';
 
 const AdminPortfolio = () => {
@@ -22,16 +23,20 @@ const AdminPortfolio = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const alert = useAlert();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
   const fetchProjects = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
+        .eq('user_id', user.id) // Only fetch current user's projects
         .order('order', { ascending: true })
         .order('created_at', { ascending: false });
 
@@ -66,6 +71,7 @@ const AdminPortfolio = () => {
         featured_media: featuredUrl,
         order: parseInt(data.order) || 0,
         published: data.published === true || data.published === 'true',
+        user_id: user.id, // Link to current user
       };
 
       if (editingProject) {

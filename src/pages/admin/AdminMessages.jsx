@@ -3,22 +3,27 @@ import { FiMail, FiTrash2 } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
 import BackButton from '../../components/BackButton';
 import { useAlert } from '../../context/AlertContext';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const alert = useAlert();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchMessages();
   }, []);
 
   const fetchMessages = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('contact_messages')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('user_id', user.id) // Only fetch current user's messages
+        .order('created_at', { ascending: false});
 
       if (error) throw error;
       setMessages(data || []);

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FiFileText, FiBriefcase, FiMail, FiLogOut } from 'react-icons/fi';
+import { FiFileText, FiBriefcase, FiMail, FiLogOut, FiSettings } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -82,6 +82,13 @@ const Dashboard = () => {
       icon: FiMail,
       link: '/admin/messages',
       color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    },
+    {
+      title: 'Portfolio Settings',
+      description: 'Customize your portfolio info & URL',
+      icon: FiSettings,
+      link: '/admin/settings',
+      color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
     },
   ];
 
