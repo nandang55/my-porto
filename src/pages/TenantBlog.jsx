@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
+import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const TenantBlog = () => {
   const { slug } = useParams();
@@ -11,6 +12,12 @@ const TenantBlog = () => {
 
   useEffect(() => {
     fetchData();
+    
+    // Cleanup on unmount
+    return () => {
+      resetFavicon();
+      document.title = 'BagdjaPorto';
+    };
   }, [slug]);
 
   const fetchData = async () => {
@@ -25,6 +32,14 @@ const TenantBlog = () => {
 
       if (portfolioError) throw portfolioError;
       setPortfolio(portfolioData);
+      
+      // Set favicon and title
+      if (portfolioData.favicon_url) {
+        setFavicon(portfolioData.favicon_url);
+      } else {
+        resetFavicon();
+      }
+      document.title = `${portfolioData.name} - Blog`;
 
       // Fetch blog posts
       const { data: postsData, error: postsError } = await supabase

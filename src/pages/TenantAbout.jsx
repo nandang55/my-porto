@@ -4,6 +4,7 @@ import { FiMail, FiPhone, FiMapPin, FiGlobe, FiGithub, FiLinkedin, FiTwitter, Fi
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
 import TechTag from '../components/TechTag';
+import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const TenantAbout = () => {
   const { slug } = useParams();
@@ -12,6 +13,12 @@ const TenantAbout = () => {
 
   useEffect(() => {
     fetchPortfolio();
+    
+    // Cleanup on unmount
+    return () => {
+      resetFavicon();
+      document.title = 'BagdjaPorto';
+    };
   }, [slug]);
 
   const fetchPortfolio = async () => {
@@ -25,6 +32,14 @@ const TenantAbout = () => {
 
       if (error) throw error;
       setPortfolio(data);
+      
+      // Set favicon and title
+      if (data.favicon_url) {
+        setFavicon(data.favicon_url);
+      } else {
+        resetFavicon();
+      }
+      document.title = `${data.name} - About`;
     } catch (error) {
       console.error('Error fetching portfolio:', error);
     } finally {

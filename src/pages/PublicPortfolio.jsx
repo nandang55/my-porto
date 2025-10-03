@@ -7,6 +7,7 @@ import TechTag from '../components/TechTag';
 import SearchBar from '../components/SearchBar';
 import TenantNavbar from '../components/TenantNavbar';
 import { getTextPreview, stripHtml } from '../utils/textHelpers';
+import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const PublicPortfolio = () => {
   const { slug } = useParams();
@@ -34,17 +35,13 @@ const PublicPortfolio = () => {
       
       // Set favicon dynamically
       if (portfolio.favicon_url) {
-        let link = document.querySelector("link[rel~='icon']");
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.head.appendChild(link);
-        }
-        link.href = portfolio.favicon_url;
+        setFavicon(portfolio.favicon_url);
+      } else {
+        resetFavicon();
       }
 
       // Set page title
-      document.title = portfolio.meta_title || `${portfolio.name} - Portfolio`;
+      document.title = `${portfolio.name} - Portfolio`;
     }
 
     // Cleanup on unmount
@@ -56,7 +53,8 @@ const PublicPortfolio = () => {
       document.documentElement.style.removeProperty('--theme-text-secondary');
       document.documentElement.style.removeProperty('--theme-bg-light');
       document.documentElement.style.removeProperty('--theme-bg-dark');
-      // Reset title
+      // Reset favicon and title
+      resetFavicon();
       document.title = 'BagdjaPorto';
     };
   }, [portfolio]);

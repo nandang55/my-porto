@@ -5,6 +5,7 @@ import { FiMail, FiPhone, FiMapPin, FiSend } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
 import { useAlert } from '../context/AlertContext';
+import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const TenantContact = () => {
   const { slug } = useParams();
@@ -16,6 +17,12 @@ const TenantContact = () => {
 
   useEffect(() => {
     fetchPortfolio();
+    
+    // Cleanup on unmount
+    return () => {
+      resetFavicon();
+      document.title = 'BagdjaPorto';
+    };
   }, [slug]);
 
   const fetchPortfolio = async () => {
@@ -29,6 +36,16 @@ const TenantContact = () => {
 
       if (error) throw error;
       setPortfolio(data);
+      
+      // Set favicon dynamically
+      if (data.favicon_url) {
+        setFavicon(data.favicon_url);
+      } else {
+        resetFavicon();
+      }
+      
+      // Set page title
+      document.title = `${data.name} - Contact`;
     } catch (error) {
       console.error('Error fetching portfolio:', error);
     } finally {
