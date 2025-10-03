@@ -31,7 +31,10 @@ const TenantNavbar = ({ portfolio }) => {
               <img
                 src={portfolio.avatar_url}
                 alt={portfolio.name}
-                className="w-10 h-10 rounded-full object-cover border-2 border-primary-500 group-hover:scale-110 transition-transform"
+                className="w-10 h-10 rounded-full object-cover border-2 group-hover:scale-110 transition-transform"
+                style={{
+                  borderColor: portfolio.theme_color || '#0284c7'
+                }}
               />
             )}
             <div>
@@ -54,9 +57,12 @@ const TenantNavbar = ({ portfolio }) => {
                 to={link.path}
                 className={`font-medium transition-colors duration-200 ${
                   isActive(link.path)
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+                    ? ''
+                    : 'text-gray-700 dark:text-gray-300'
                 }`}
+                style={isActive(link.path) ? { color: portfolio.theme_color || '#0284c7' } : {}}
+                onMouseEnter={(e) => !isActive(link.path) && (e.currentTarget.style.color = portfolio.theme_color || '#0284c7')}
+                onMouseLeave={(e) => !isActive(link.path) && (e.currentTarget.style.color = '')}
               >
                 {link.name}
               </Link>
@@ -86,9 +92,12 @@ const TenantNavbar = ({ portfolio }) => {
                 onClick={() => setIsOpen(false)}
                 className={`block py-3 font-medium transition-colors duration-200 ${
                   isActive(link.path)
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+                    ? ''
+                    : 'text-gray-700 dark:text-gray-300'
                 }`}
+                style={isActive(link.path) ? { color: portfolio.theme_color || '#0284c7' } : {}}
+                onMouseEnter={(e) => !isActive(link.path) && (e.currentTarget.style.color = portfolio.theme_color || '#0284c7')}
+                onMouseLeave={(e) => !isActive(link.path) && (e.currentTarget.style.color = '')}
               >
                 {link.name}
               </Link>

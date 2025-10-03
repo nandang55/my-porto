@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { useState } from 'react';
 import DarkModeToggle from './DarkModeToggle';
+import logoBagdjaPorto from '../assets/logo_bagdja_porto.png';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,8 +10,6 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Portfolio', path: '/portfolio' },
-    { name: 'Blog', path: '/blog' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -22,8 +21,12 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-            MyPorto
+          <Link to="/" className="flex items-center">
+            <img 
+              src={logoBagdjaPorto} 
+              alt="BagdjaPorto" 
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Desktop Menu */}

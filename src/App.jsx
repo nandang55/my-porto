@@ -8,8 +8,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Public Pages
 import Home from './pages/Home';
-import Portfolio from './pages/Portfolio';
-import Blog from './pages/Blog';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import PublicPortfolio from './pages/PublicPortfolio';
@@ -35,8 +33,6 @@ function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Layout><Home /></Layout>} />
-                <Route path="/portfolio" element={<Layout><Portfolio /></Layout>} />
-                <Route path="/blog" element={<Layout><Blog /></Layout>} />
                 <Route path="/about" element={<Layout><About /></Layout>} />
                 <Route path="/contact" element={<Layout><Contact /></Layout>} />
 

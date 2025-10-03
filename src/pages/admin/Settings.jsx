@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FiSave, FiExternalLink, FiUser, FiMail, FiShare2, FiCode, FiFileText } from 'react-icons/fi';
+import { FiSave, FiExternalLink, FiUser, FiMail, FiShare2, FiCode, FiFileText, FiUpload, FiX, FiDroplet } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
 import BackButton from '../../components/BackButton';
+import SkillsInput from '../../components/SkillsInput';
+import LanguagesInput from '../../components/LanguagesInput';
 import { useAlert } from '../../context/AlertContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,7 +13,27 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [portfolio, setPortfolio] = useState(null);
   const [activeTab, setActiveTab] = useState('basic');
-  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm();
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [faviconFile, setFaviconFile] = useState(null);
+  const [faviconPreview, setFaviconPreview] = useState(null);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [skills, setSkills] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [themeColor, setThemeColor] = useState('#0284c7');
+  const [secondaryColor, setSecondaryColor] = useState('#6366f1');
+  const [accentColor, setAccentColor] = useState('#f59e0b');
+  const [textPrimary, setTextPrimary] = useState('#1f2937');
+  const [textSecondary, setTextSecondary] = useState('#6b7280');
+  const [bgLight, setBgLight] = useState('#ffffff');
+  const [bgDark, setBgDark] = useState('#111827');
+  const { register, handleSubmit, reset, formState: { errors }, watch, setValue } = useForm();
   const alert = useAlert();
   const { user } = useAuth();
 
@@ -20,13 +42,14 @@ const Settings = () => {
   
   // Portfolio URLs
   const portfolioUrl = slug ? `${window.location.origin}/${slug}` : '';
-  const subdomainUrl = slug ? `https://${slug}.portofolio.bagdja.com` : '';
+  const subdomainUrl = slug ? `https://${slug}.porto.bagdja.com` : '';
 
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: FiUser },
     { id: 'contact', label: 'Contact', icon: FiMail },
     { id: 'social', label: 'Social Links', icon: FiShare2 },
     { id: 'professional', label: 'Professional', icon: FiCode },
+    { id: 'theme', label: 'Theme & Colors', icon: FiDroplet },
     { id: 'domain', label: 'Custom Domain', icon: FiExternalLink },
     { id: 'seo', label: 'SEO', icon: FiFileText },
   ];
@@ -34,6 +57,272 @@ const Settings = () => {
   useEffect(() => {
     fetchPortfolio();
   }, []);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setAvatarFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile || !user) return null;
+
+    setUploadingAvatar(true);
+    try {
+      // Delete old avatar if exists
+      if (portfolio?.avatar_url) {
+        const oldPath = portfolio.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, avatarFile);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert.error('Failed to upload avatar');
+      return null;
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setValue('avatar_url', '');
+  };
+
+  const handleResumeChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type (PDF only)
+    if (file.type !== 'application/pdf') {
+      alert.error('Please select a PDF file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert.error('Resume file size must be less than 10MB');
+      return;
+    }
+
+    setResumeFile(file);
+  };
+
+  const uploadResume = async () => {
+    if (!resumeFile || !user) return null;
+
+    setUploadingResume(true);
+    try {
+      // Delete old resume if exists
+      if (portfolio?.resume_url) {
+        const oldPath = portfolio.resume_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('resumes')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new resume
+      const fileExt = resumeFile.name.split('.').pop();
+      const fileName = `resume_${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, resumeFile);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+      alert.error('Failed to upload resume');
+      return null;
+    } finally {
+      setUploadingResume(false);
+    }
+  };
+
+  const removeResume = () => {
+    setResumeFile(null);
+    setValue('resume_url', '');
+  };
+
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert.error('Cover image size must be less than 5MB');
+      return;
+    }
+
+    setCoverImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCoverImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadCoverImage = async () => {
+    if (!coverImageFile || !user) return null;
+
+    setUploadingCover(true);
+    try {
+      if (portfolio?.cover_image) {
+        const oldPath = portfolio.cover_image.split('/').pop();
+        if (oldPath) {
+          await supabase.storage.from('covers').remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      const fileExt = coverImageFile.name.split('.').pop();
+      const fileName = `cover_${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('covers')
+        .upload(filePath, coverImageFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('covers')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading cover:', error);
+      alert.error('Failed to upload cover image');
+      return null;
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const removeCoverImage = () => {
+    setCoverImageFile(null);
+    setCoverImagePreview(null);
+    setValue('cover_image', '');
+  };
+
+  const handleFaviconChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 1 * 1024 * 1024) {
+      alert.error('Favicon size must be less than 1MB');
+      return;
+    }
+
+    setFaviconFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFaviconPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadFavicon = async () => {
+    if (!faviconFile || !user) return null;
+
+    setUploadingFavicon(true);
+    try {
+      if (portfolio?.favicon_url) {
+        const oldPath = portfolio.favicon_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage.from('favicons').remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      const fileExt = faviconFile.name.split('.').pop();
+      const fileName = `favicon_${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('favicons')
+        .upload(filePath, faviconFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('favicons')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading favicon:', error);
+      alert.error('Failed to upload favicon');
+      return null;
+    } finally {
+      setUploadingFavicon(false);
+    }
+  };
+
+  const removeFavicon = () => {
+    setFaviconFile(null);
+    setFaviconPreview(null);
+    setValue('favicon_url', '');
+  };
 
   const fetchPortfolio = async () => {
     if (!user) return;
@@ -51,9 +340,30 @@ const Settings = () => {
         setPortfolio(data);
         reset({
           ...data,
-          skills: data.skills?.join(', ') || '',
-          languages: data.languages?.join(', ') || '',
         });
+        // Set skills and languages
+        setSkills(data.skills || []);
+        setLanguages(data.languages || []);
+        // Set theme colors
+        setThemeColor(data.theme_color || '#0284c7');
+        setSecondaryColor(data.secondary_color || '#6366f1');
+        setAccentColor(data.accent_color || '#f59e0b');
+        setTextPrimary(data.text_primary || '#1f2937');
+        setTextSecondary(data.text_secondary || '#6b7280');
+        setBgLight(data.bg_light || '#ffffff');
+        setBgDark(data.bg_dark || '#111827');
+        // Set avatar preview if exists
+        if (data.avatar_url) {
+          setAvatarPreview(data.avatar_url);
+        }
+        // Set cover image preview if exists
+        if (data.cover_image) {
+          setCoverImagePreview(data.cover_image);
+        }
+        // Set favicon preview if exists
+        if (data.favicon_url) {
+          setFaviconPreview(data.favicon_url);
+        }
       }
     } catch (error) {
       console.error('Error fetching portfolio:', error);
@@ -66,37 +376,88 @@ const Settings = () => {
     setSaving(true);
 
     try {
+      // Validate required fields
+      if (!data.slug || !data.name) {
+        alert.error('Slug and Name are required fields.');
+        setSaving(false);
+        return;
+      }
+
+      // Upload avatar if there's a new file
+      let avatarUrl = data.avatar_url;
+      if (avatarFile) {
+        const uploadedUrl = await uploadAvatar();
+        if (uploadedUrl) {
+          avatarUrl = uploadedUrl;
+        }
+      }
+
+      // Upload resume if there's a new file
+      let resumeUrl = data.resume_url;
+      if (resumeFile) {
+        const uploadedUrl = await uploadResume();
+        if (uploadedUrl) {
+          resumeUrl = uploadedUrl;
+        }
+      }
+
+      // Upload cover image if there's a new file
+      let coverImageUrl = data.cover_image;
+      if (coverImageFile) {
+        const uploadedUrl = await uploadCoverImage();
+        if (uploadedUrl) {
+          coverImageUrl = uploadedUrl;
+        }
+      }
+
+      // Upload favicon if there's a new file
+      let faviconUrl = data.favicon_url;
+      if (faviconFile) {
+        const uploadedUrl = await uploadFavicon();
+        if (uploadedUrl) {
+          faviconUrl = uploadedUrl;
+        }
+      }
+
       const portfolioData = {
         user_id: user.id,
-        slug: data.slug.toLowerCase().replace(/[^a-z0-9-]/g, ''),
-        username: data.username || data.slug,
-        name: data.name,
-        title: data.title,
-        tagline: data.tagline,
-        bio: data.bio,
-        company: data.company,
+        slug: data.slug ? data.slug.toLowerCase().replace(/[^a-z0-9-]/g, '') : '',
+        username: data.username || data.slug || '',
+        name: data.name || '',
+        title: data.title || null,
+        tagline: data.tagline || null,
+        bio: data.bio || null,
+        company: data.company || null,
         years_experience: data.years_experience ? parseInt(data.years_experience) : null,
-        avatar_url: data.avatar_url,
-        email: data.email,
-        phone: data.phone,
-        location: data.location,
-        timezone: data.timezone,
-        website: data.website,
-        github_url: data.github_url,
-        linkedin_url: data.linkedin_url,
-        twitter_url: data.twitter_url,
-        instagram_url: data.instagram_url,
-        skills: data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
-        languages: data.languages ? data.languages.split(',').map(l => l.trim()).filter(Boolean) : [],
-        resume_url: data.resume_url,
+        avatar_url: avatarUrl || null,
+        email: data.email || null,
+        phone: data.phone || null,
+        location: data.location || null,
+        timezone: data.timezone || null,
+        website: data.website || null,
+        github_url: data.github_url || null,
+        linkedin_url: data.linkedin_url || null,
+        twitter_url: data.twitter_url || null,
+        instagram_url: data.instagram_url || null,
+        skills: skills || [],
+        languages: languages || [],
+        resume_url: resumeUrl || null,
         availability_status: data.availability_status || 'available',
-        hourly_rate: data.hourly_rate,
+        hourly_rate: data.hourly_rate || null,
         custom_domain: data.custom_domain || null,
-        theme_color: data.theme_color || '#0284c7',
+        theme_color: themeColor || '#0284c7',
+        secondary_color: secondaryColor || '#6366f1',
+        accent_color: accentColor || '#f59e0b',
+        text_primary: textPrimary || '#1f2937',
+        text_secondary: textSecondary || '#6b7280',
+        bg_light: bgLight || '#ffffff',
+        bg_dark: bgDark || '#111827',
+        cover_image: coverImageUrl || null,
+        favicon_url: faviconUrl || null,
         is_active: data.is_active !== false,
-        meta_title: data.meta_title,
-        meta_description: data.meta_description,
-        meta_keywords: data.meta_keywords ? data.meta_keywords.split(',').map(k => k.trim()).filter(Boolean) : [],
+        meta_title: data.meta_title || null,
+        meta_description: data.meta_description || null,
+        meta_keywords: (data.meta_keywords && typeof data.meta_keywords === 'string') ? data.meta_keywords.split(',').map(k => k.trim()).filter(Boolean) : [],
       };
 
       if (portfolio) {
@@ -121,6 +482,8 @@ const Settings = () => {
       console.error('Error saving portfolio:', error);
       if (error.code === '23505') {
         alert.error('Slug or username is already taken. Please choose another one.');
+      } else if (error.message) {
+        alert.error(`Error: ${error.message}`);
       } else {
         alert.error('Failed to save portfolio settings. Please try again.');
       }
@@ -136,15 +499,13 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="container mx-auto px-4 max-w-5xl">
-        {/* Back Button */}
-        <div className="mb-4">
-          <BackButton iconOnly={true} size={32} />
-        </div>
-
-        {/* Header */}
+        {/* Header with Back Button */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Portfolio Settings</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-4 mb-2">
+            <BackButton iconOnly={true} size={32} />
+            <h1 className="text-3xl font-bold">Portfolio Settings</h1>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 ml-14">
             Customize your public portfolio appearance and information
           </p>
         </div>
@@ -325,15 +686,67 @@ const Settings = () => {
 
               {/* Avatar */}
               <div>
-                <label className="block font-medium mb-2">Avatar URL</label>
-                <input
-                  {...register('avatar_url')}
-                  className="input-field"
-                  placeholder="https://example.com/avatar.jpg"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Profile picture (recommended: 400x400px, square)
+                <label className="block font-medium mb-2">Avatar</label>
+                
+                {/* Avatar Preview */}
+                <div className="mb-4">
+                  {(avatarPreview || watch('avatar_url')) && (
+                    <div className="relative inline-block">
+                      <img
+                        src={avatarPreview || watch('avatar_url')}
+                        alt="Avatar preview"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-primary-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeAvatar}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                      >
+                        <FiX size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* File Upload */}
+                <div className="flex items-center gap-4">
+                  <label className="btn-secondary cursor-pointer flex items-center gap-2">
+                    <FiUpload />
+                    {uploadingAvatar ? 'Uploading...' : 'Choose Image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                      disabled={uploadingAvatar}
+                    />
+                  </label>
+                  
+                  {avatarFile && (
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {avatarFile.name}
+                    </span>
+                  )}
+                </div>
+
+                {/* Hidden input to store avatar URL */}
+                <input type="hidden" {...register('avatar_url')} />
+
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Recommended: 400x400px, square, max 5MB (JPG, PNG, GIF, WebP)
                 </p>
+              </div>
+
+              {/* Help Tips */}
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h3 className="font-bold mb-2 text-blue-900 dark:text-blue-300">💡 Tips:</h3>
+                <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+                  <li>• <strong>Slug:</strong> Your unique URL (e.g., /john-doe) - lowercase only</li>
+                  <li>• <strong>Username:</strong> Display name (e.g., @JohnDoe) - can have uppercase</li>
+                  <li>• <strong>Bio:</strong> Write a compelling story about your journey and expertise</li>
+                  <li>• <strong>Avatar:</strong> Upload a professional photo (square, 400x400px recommended)</li>
+                  <li>• <strong>Tagline:</strong> Short catchy phrase that describes what you do</li>
+                </ul>
               </div>
             </div>
           )}
@@ -466,35 +879,99 @@ const Settings = () => {
               </div>
 
               <div>
-                <label className="block font-medium mb-2">Skills (comma separated)</label>
-                <input
-                  {...register('skills')}
-                  className="input-field"
-                  placeholder="React, Node.js, TypeScript, PostgreSQL, AWS"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Separate skills with commas
-                </p>
-              </div>
-
-              <div>
-                <label className="block font-medium mb-2">Languages (comma separated)</label>
-                <input
-                  {...register('languages')}
-                  className="input-field"
-                  placeholder="English, Indonesian, Japanese"
+                <label className="block font-medium mb-2">Skills</label>
+                <SkillsInput
+                  value={skills}
+                  onChange={setSkills}
                 />
               </div>
 
               <div>
-                <label className="block font-medium mb-2">Resume/CV URL</label>
-                <input
-                  {...register('resume_url')}
-                  className="input-field"
-                  placeholder="https://drive.google.com/your-resume.pdf"
+                <label className="block font-medium mb-2">Languages</label>
+                <LanguagesInput
+                  value={languages}
+                  onChange={setLanguages}
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Link to downloadable resume/CV
+              </div>
+
+              <div>
+                <label className="block font-medium mb-2">Resume/CV</label>
+                
+                {/* Current Resume Display */}
+                {watch('resume_url') && !resumeFile && (
+                  <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                          <span className="text-2xl">📄</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">Current Resume</p>
+                          <a
+                            href={watch('resume_url')}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+                          >
+                            View Resume
+                          </a>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeResume}
+                        className="text-red-500 hover:text-red-600 transition-colors"
+                      >
+                        <FiX size={20} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected File Display */}
+                {resumeFile && (
+                  <div className="mb-4 p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                          <span className="text-2xl">📄</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">{resumeFile.name}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {(resumeFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setResumeFile(null)}
+                        className="text-red-500 hover:text-red-600 transition-colors"
+                      >
+                        <FiX size={20} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* File Upload */}
+                <label className="btn-secondary cursor-pointer flex items-center gap-2 w-fit">
+                  <FiUpload />
+                  {uploadingResume ? 'Uploading...' : resumeFile ? 'Change PDF' : 'Upload PDF'}
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={handleResumeChange}
+                    className="hidden"
+                    disabled={uploadingResume}
+                  />
+                </label>
+
+                {/* Hidden input to store resume URL */}
+                <input type="hidden" {...register('resume_url')} />
+
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Upload your resume/CV in PDF format (max 10MB)
                 </p>
               </div>
 
@@ -519,6 +996,444 @@ const Settings = () => {
                     placeholder="$50/hour"
                   />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Theme & Colors Tab */}
+          {activeTab === 'theme' && (
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-xl font-bold mb-2">Theme & Color Customization</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Customize your portfolio's color scheme to match your personal brand
+                </p>
+              </div>
+
+              {/* Color Preview */}
+              <div className="card bg-gradient-to-r" style={{
+                backgroundImage: `linear-gradient(to right, ${themeColor}, ${secondaryColor})`
+              }}>
+                <div className="text-white text-center py-8">
+                  <h3 className="text-2xl font-bold mb-2">Color Preview</h3>
+                  <p className="opacity-90">This is how your theme colors will look</p>
+                </div>
+              </div>
+
+              {/* Cover Image & Favicon */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <FiUpload className="text-primary-600" />
+                  Visual Assets
+                </h3>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Cover Image */}
+                  <div>
+                    <label className="block font-medium mb-2">Cover Image</label>
+                    
+                    {/* Preview */}
+                    {(coverImagePreview || watch('cover_image')) && (
+                      <div className="relative mb-4">
+                        <img
+                          src={coverImagePreview || watch('cover_image')}
+                          alt="Cover preview"
+                          className="w-full h-48 object-cover rounded-lg border-2"
+                          style={{ borderColor: themeColor }}
+                        />
+                        <button
+                          type="button"
+                          onClick={removeCoverImage}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
+                        >
+                          <FiX size={16} />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Upload Button */}
+                    <label className="btn-secondary cursor-pointer flex items-center gap-2 w-fit">
+                      <FiUpload />
+                      {uploadingCover ? 'Uploading...' : coverImageFile ? 'Change Image' : 'Upload Cover'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverImageChange}
+                        className="hidden"
+                        disabled={uploadingCover}
+                      />
+                    </label>
+
+                    <input type="hidden" {...register('cover_image')} />
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Hero banner image (recommended: 1920x600px, max 5MB)
+                    </p>
+                  </div>
+
+                  {/* Favicon */}
+                  <div>
+                    <label className="block font-medium mb-2">Favicon</label>
+                    
+                    {/* Preview */}
+                    {(faviconPreview || watch('favicon_url')) && (
+                      <div className="relative inline-block mb-4">
+                        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-gray-300 dark:border-gray-600">
+                          <img
+                            src={faviconPreview || watch('favicon_url')}
+                            alt="Favicon preview"
+                            className="w-16 h-16 object-contain"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeFavicon}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        >
+                          <FiX size={14} />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Upload Button */}
+                    <label className="btn-secondary cursor-pointer flex items-center gap-2 w-fit">
+                      <FiUpload />
+                      {uploadingFavicon ? 'Uploading...' : faviconFile ? 'Change Icon' : 'Upload Favicon'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFaviconChange}
+                        className="hidden"
+                        disabled={uploadingFavicon}
+                      />
+                    </label>
+
+                    <input type="hidden" {...register('favicon_url')} />
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Browser tab icon (recommended: 32x32px or 64x64px, PNG/ICO, max 1MB)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Primary Colors */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <FiDroplet className="text-primary-600" />
+                  Primary Colors
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Theme Color */}
+                  <div>
+                    <label className="block font-medium mb-2">Primary Color</label>
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="color"
+                        value={themeColor}
+                        onChange={(e) => setThemeColor(e.target.value)}
+                        className="w-20 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={themeColor}
+                        onChange={(e) => setThemeColor(e.target.value)}
+                        className="input flex-1"
+                        placeholder="#0284c7"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Main brand color (buttons, links, accents)
+                    </p>
+                  </div>
+
+                  {/* Secondary Color */}
+                  <div>
+                    <label className="block font-medium mb-2">Secondary Color</label>
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="color"
+                        value={secondaryColor}
+                        onChange={(e) => setSecondaryColor(e.target.value)}
+                        className="w-20 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={secondaryColor}
+                        onChange={(e) => setSecondaryColor(e.target.value)}
+                        className="input flex-1"
+                        placeholder="#6366f1"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Supporting brand color (secondary elements)
+                    </p>
+                  </div>
+
+                  {/* Accent Color */}
+                  <div>
+                    <label className="block font-medium mb-2">Accent Color</label>
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="color"
+                        value={accentColor}
+                        onChange={(e) => setAccentColor(e.target.value)}
+                        className="w-20 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={accentColor}
+                        onChange={(e) => setAccentColor(e.target.value)}
+                        className="input flex-1"
+                        placeholder="#f59e0b"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Highlight color (badges, special elements)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Colors */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <FiFileText className="text-primary-600" />
+                  Text Colors
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Primary Text */}
+                  <div>
+                    <label className="block font-medium mb-2">Primary Text Color</label>
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="color"
+                        value={textPrimary}
+                        onChange={(e) => setTextPrimary(e.target.value)}
+                        className="w-20 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={textPrimary}
+                        onChange={(e) => setTextPrimary(e.target.value)}
+                        className="input flex-1"
+                        placeholder="#1f2937"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Main text color (headings, important text)
+                    </p>
+                  </div>
+
+                  {/* Secondary Text */}
+                  <div>
+                    <label className="block font-medium mb-2">Secondary Text Color</label>
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="color"
+                        value={textSecondary}
+                        onChange={(e) => setTextSecondary(e.target.value)}
+                        className="w-20 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={textSecondary}
+                        onChange={(e) => setTextSecondary(e.target.value)}
+                        className="input flex-1"
+                        placeholder="#6b7280"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Muted text color (descriptions, captions)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Background Colors */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <FiUser className="text-primary-600" />
+                  Background Colors
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Light Background */}
+                  <div>
+                    <label className="block font-medium mb-2">Light Background</label>
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="color"
+                        value={bgLight}
+                        onChange={(e) => setBgLight(e.target.value)}
+                        className="w-20 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={bgLight}
+                        onChange={(e) => setBgLight(e.target.value)}
+                        className="input flex-1"
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Main background color (light mode)
+                    </p>
+                  </div>
+
+                  {/* Dark Background */}
+                  <div>
+                    <label className="block font-medium mb-2">Dark Background</label>
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="color"
+                        value={bgDark}
+                        onChange={(e) => setBgDark(e.target.value)}
+                        className="w-20 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={bgDark}
+                        onChange={(e) => setBgDark(e.target.value)}
+                        className="input flex-1"
+                        placeholder="#111827"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Main background color (dark mode)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preset Themes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Quick Presets</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Ocean Blue */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#0284c7');
+                      setSecondaryColor('#0ea5e9');
+                      setAccentColor('#38bdf8');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-cyan-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-cyan-600 to-blue-500 mb-2"></div>
+                    <p className="text-sm font-medium">Ocean Blue</p>
+                  </button>
+
+                  {/* Purple Dream */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#7c3aed');
+                      setSecondaryColor('#a78bfa');
+                      setAccentColor('#c084fc');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-purple-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-purple-600 to-violet-500 mb-2"></div>
+                    <p className="text-sm font-medium">Purple Dream</p>
+                  </button>
+
+                  {/* Emerald Fresh */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#059669');
+                      setSecondaryColor('#10b981');
+                      setAccentColor('#34d399');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-emerald-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-emerald-600 to-green-500 mb-2"></div>
+                    <p className="text-sm font-medium">Emerald Fresh</p>
+                  </button>
+
+                  {/* Sunset Orange */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#ea580c');
+                      setSecondaryColor('#f97316');
+                      setAccentColor('#fb923c');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-orange-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-orange-600 to-amber-500 mb-2"></div>
+                    <p className="text-sm font-medium">Sunset Orange</p>
+                  </button>
+
+                  {/* Rose Pink */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#e11d48');
+                      setSecondaryColor('#f43f5e');
+                      setAccentColor('#fb7185');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-rose-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-rose-600 to-pink-500 mb-2"></div>
+                    <p className="text-sm font-medium">Rose Pink</p>
+                  </button>
+
+                  {/* Teal Fresh */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#0d9488');
+                      setSecondaryColor('#14b8a6');
+                      setAccentColor('#2dd4bf');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-teal-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-teal-600 to-cyan-500 mb-2"></div>
+                    <p className="text-sm font-medium">Teal Fresh</p>
+                  </button>
+
+                  {/* Slate Professional */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#475569');
+                      setSecondaryColor('#64748b');
+                      setAccentColor('#94a3b8');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-slate-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-slate-600 to-gray-500 mb-2"></div>
+                    <p className="text-sm font-medium">Slate Pro</p>
+                  </button>
+
+                  {/* Crimson Bold */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemeColor('#dc2626');
+                      setSecondaryColor('#ef4444');
+                      setAccentColor('#f87171');
+                    }}
+                    className="p-4 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-red-500 transition-all group"
+                  >
+                    <div className="h-12 rounded bg-gradient-to-r from-red-600 to-red-500 mb-2"></div>
+                    <p className="text-sm font-medium">Crimson Bold</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Info Box */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">💡 Theme Tips</h4>
+                <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+                  <li>• Use <strong>Primary Color</strong> for main elements (navbar, buttons, hero)</li>
+                  <li>• Use <strong>Secondary Color</strong> for supporting elements</li>
+                  <li>• Use <strong>Accent Color</strong> for highlights and special badges</li>
+                  <li>• Choose colors that complement each other</li>
+                  <li>• Test in both light and dark modes</li>
+                  <li>• Try Quick Presets for instant professional color schemes</li>
+                </ul>
               </div>
             </div>
           )}
@@ -561,7 +1476,7 @@ const Settings = () => {
                   Your portfolio is automatically accessible via subdomain:
                 </p>
                 <code className="text-purple-700 dark:text-purple-400 font-mono text-sm break-all block mb-3">
-                  {slug}.portofolio.bagdja.com
+                  {slug}.porto.bagdja.com
                 </code>
                 <p className="text-xs text-purple-700 dark:text-purple-400">
                   💡 This provides a more professional look than path-based URLs. No additional configuration needed!
@@ -712,38 +1627,24 @@ const Settings = () => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-medium mb-2">Theme Color</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      {...register('theme_color')}
-                      className="w-16 h-10 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      {...register('theme_color')}
-                      className="input-field flex-1"
-                      placeholder="#0284c7"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2">Portfolio Status</label>
-                  <label className="flex items-center gap-3 cursor-pointer h-10">
-                    <input
-                      type="checkbox"
-                      {...register('is_active')}
-                      className="w-5 h-5 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <span className="text-sm font-medium">
+              <div>
+                <label className="block font-medium mb-2">Portfolio Status</label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...register('is_active')}
+                    className="w-5 h-5 text-primary-600 rounded"
+                    defaultChecked
+                  />
+                  <div>
+                    <span className="block font-medium">
                       Active (publicly accessible)
                     </span>
-                  </label>
-                </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Enable this to make your portfolio visible to the public
+                    </span>
+                  </div>
+                </label>
               </div>
             </div>
           )}
@@ -770,19 +1671,6 @@ const Settings = () => {
             )}
           </div>
         </form>
-
-        {/* Help Tips */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h3 className="font-bold mb-2 text-blue-900 dark:text-blue-300">💡 Tips:</h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
-            <li>• <strong>Slug:</strong> Your unique URL (e.g., /john-doe) - lowercase only</li>
-            <li>• <strong>Username:</strong> Display name (e.g., @JohnDoe) - can have uppercase</li>
-            <li>• <strong>Bio:</strong> Write a compelling story about your journey and expertise</li>
-            <li>• <strong>Skills:</strong> Add your top technical skills for better discovery</li>
-            <li>• <strong>Resume:</strong> Link to Google Drive, Dropbox, or cloud storage</li>
-            <li>• <strong>SEO:</strong> Good meta tags improve Google search ranking</li>
-          </ul>
-        </div>
       </div>
     </div>
   );

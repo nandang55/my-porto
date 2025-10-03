@@ -38,6 +38,17 @@ export const AuthProvider = ({ children }) => {
     return { data, error };
   };
 
+  const signUp = async (email, password, metadata = {}) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata,
+      },
+    });
+    return { data, error };
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     return { error };
@@ -47,6 +58,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     signIn,
+    signUp,
     signOut,
   };
 

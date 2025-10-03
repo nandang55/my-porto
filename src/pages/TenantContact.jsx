@@ -43,6 +43,7 @@ const TenantContact = () => {
         {
           name: formData.name,
           email: formData.email,
+          subject: formData.subject,
           message: formData.message,
           user_id: portfolio.user_id,
         },
@@ -167,7 +168,7 @@ const TenantContact = () => {
                   <input
                     type="text"
                     {...register('name', { required: 'Name is required' })}
-                    className="input"
+                    className="input-field"
                     placeholder="Your name"
                   />
                   {errors.name && (
@@ -186,7 +187,7 @@ const TenantContact = () => {
                         message: 'Invalid email address',
                       },
                     })}
-                    className="input"
+                    className="input-field"
                     placeholder="your.email@example.com"
                   />
                   {errors.email && (
@@ -195,11 +196,24 @@ const TenantContact = () => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium mb-2">Subject *</label>
+                  <input
+                    type="text"
+                    {...register('subject', { required: 'Subject is required' })}
+                    className="input-field"
+                    placeholder="What's this about?"
+                  />
+                  {errors.subject && (
+                    <p className="text-red-500 text-sm mt-1">{errors.subject.message}</p>
+                  )}
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium mb-2">Message *</label>
                   <textarea
                     {...register('message', { required: 'Message is required' })}
                     rows="6"
-                    className="input resize-none"
+                    className="input-field resize-none"
                     placeholder="Tell me about your project..."
                   />
                   {errors.message && (

@@ -48,7 +48,7 @@ A modern, responsive **Multi-Tenant Portfolio Platform** built with React.js and
 
 1. Clone the repository:
 ```bash
-cd my-porto
+cd bagdja-porto
 ```
 
 2. Install dependencies:
@@ -249,7 +249,7 @@ netlify deploy --prod
 ## Project Structure
 
 ```
-my-porto/
+bagdja-porto/
 ├── public/              # Static files
 ├── src/
 │   ├── components/      # Reusable UI components

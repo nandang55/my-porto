@@ -25,7 +25,7 @@ Panduan lengkap untuk deploy portfolio website ke Vercel.
 
 2. **Push Code ke GitHub**
    ```bash
-   cd /Users/nandanghermawan/Project/my-porto
+   cd /Users/nandanghermawan/Project/bagdja-porto
    
    # Initialize git (jika belum)
    git init
@@ -113,7 +113,7 @@ Pilih method login (Email, GitHub, etc)
 ### Step 3: Deploy
 
 ```bash
-cd /Users/nandanghermawan/Project/my-porto
+cd /Users/nandanghermawan/Project/bagdja-porto
 
 # Deploy
 vercel
@@ -273,7 +273,7 @@ Enable di: Project Settings → Analytics
 **Solution:**
 ```bash
 # Test build locally first
-cd /Users/nandanghermawan/Project/my-porto
+cd /Users/nandanghermawan/Project/bagdja-porto
 npm run build
 
 # Fix any errors, then commit & push

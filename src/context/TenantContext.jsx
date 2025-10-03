@@ -31,12 +31,12 @@ export const TenantProvider = ({ children }) => {
 
     let slug = null;
 
-    // Method 1: Detect from subdomain (e.g., nandang.portofolio.bagdja.com)
+    // Method 1: Detect from subdomain (e.g., nandang.porto.bagdja.com)
     const hostname = window.location.hostname;
     const parts = hostname.split('.');
     
-    // Check if subdomain pattern: {slug}.portofolio.bagdja.com
-    if (parts.length >= 3 && parts[parts.length - 3] === 'portofolio' && parts[parts.length - 2] === 'bagdja') {
+    // Check if subdomain pattern: {slug}.porto.bagdja.com
+    if (parts.length >= 3 && parts[parts.length - 3] === 'porto' && parts[parts.length - 2] === 'bagdja') {
       slug = parts[0]; // First part is the slug
     } 
     // Check for other subdomain patterns (not localhost, not www)

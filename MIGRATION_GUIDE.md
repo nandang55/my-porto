@@ -33,7 +33,7 @@ Ini akan membuka browser untuk authentication.
 ### 3. Initialize Project
 
 ```bash
-cd my-porto
+cd bagdja-porto
 supabase init
 ```
 

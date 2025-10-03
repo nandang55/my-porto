@@ -17,31 +17,39 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (user) {
+      fetchStats();
+    }
+  }, [user]);
 
   const fetchStats = async () => {
+    if (!user?.id) return;
+
     try {
-      // Fetch total projects count
+      // Fetch total projects count for current user
       const { count: projectsTotal } = await supabase
         .from('projects')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
 
-      // Fetch published projects count
+      // Fetch published projects count for current user
       const { count: projectsPublished } = await supabase
         .from('projects')
         .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
         .eq('published', true);
 
-      // Fetch blog posts count
+      // Fetch blog posts count for current user
       const { count: blogCount } = await supabase
         .from('blog_posts')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
 
-      // Fetch messages count
+      // Fetch messages count for current user
       const { count: messagesCount } = await supabase
         .from('contact_messages')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
 
       setStats({
         projectsPublished: projectsPublished || 0,

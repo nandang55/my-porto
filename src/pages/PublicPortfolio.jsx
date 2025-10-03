@@ -20,6 +20,47 @@ const PublicPortfolio = () => {
     fetchPortfolioData();
   }, [slug]);
 
+  // Apply theme colors as CSS variables
+  useEffect(() => {
+    if (portfolio) {
+      // Set all theme colors
+      document.documentElement.style.setProperty('--theme-primary', portfolio.theme_color || '#0284c7');
+      document.documentElement.style.setProperty('--theme-secondary', portfolio.secondary_color || '#6366f1');
+      document.documentElement.style.setProperty('--theme-accent', portfolio.accent_color || '#f59e0b');
+      document.documentElement.style.setProperty('--theme-text-primary', portfolio.text_primary || '#1f2937');
+      document.documentElement.style.setProperty('--theme-text-secondary', portfolio.text_secondary || '#6b7280');
+      document.documentElement.style.setProperty('--theme-bg-light', portfolio.bg_light || '#ffffff');
+      document.documentElement.style.setProperty('--theme-bg-dark', portfolio.bg_dark || '#111827');
+      
+      // Set favicon dynamically
+      if (portfolio.favicon_url) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        link.href = portfolio.favicon_url;
+      }
+
+      // Set page title
+      document.title = portfolio.meta_title || `${portfolio.name} - Portfolio`;
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.documentElement.style.removeProperty('--theme-primary');
+      document.documentElement.style.removeProperty('--theme-secondary');
+      document.documentElement.style.removeProperty('--theme-accent');
+      document.documentElement.style.removeProperty('--theme-text-primary');
+      document.documentElement.style.removeProperty('--theme-text-secondary');
+      document.documentElement.style.removeProperty('--theme-bg-light');
+      document.documentElement.style.removeProperty('--theme-bg-dark');
+      // Reset title
+      document.title = 'BagdjaPorto';
+    };
+  }, [portfolio]);
+
   const fetchPortfolioData = async () => {
     try {
       // Fetch portfolio by slug
@@ -107,7 +148,27 @@ const PublicPortfolio = () => {
       <TenantNavbar portfolio={portfolio} />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white py-20">
+      <section 
+        className="relative text-white py-20 overflow-hidden"
+        style={{
+          background: portfolio.cover_image 
+            ? `url('${portfolio.cover_image}')` 
+            : `linear-gradient(to bottom right, ${portfolio.theme_color || '#0284c7'}, ${portfolio.theme_color || '#0284c7'}dd, ${portfolio.theme_color || '#0284c7'}bb)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Overlay for cover image */}
+        {portfolio.cover_image && (
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to bottom right, ${portfolio.theme_color || '#0284c7'}ee, ${portfolio.theme_color || '#0284c7'}cc, ${portfolio.theme_color || '#0284c7'}aa)`
+            }}
+          ></div>
+        )}
+        
+        <div className="relative z-10">
         <div className="container mx-auto px-4 text-center">
           {/* Avatar */}
           {portfolio.avatar_url && (
@@ -149,11 +210,17 @@ const PublicPortfolio = () => {
           {/* Availability Badge */}
           {portfolio.availability_status && portfolio.availability_status !== 'unavailable' && (
             <div className="flex justify-center mb-6">
-              <span className={`px-4 py-2 rounded-full font-medium text-sm ${
-                portfolio.availability_status === 'available'
-                  ? 'bg-green-500/20 text-green-100 border border-green-400'
-                  : 'bg-yellow-500/20 text-yellow-100 border border-yellow-400'
-              }`}>
+              <span 
+                className="px-4 py-2 rounded-full font-medium text-sm text-white border"
+                style={{
+                  backgroundColor: portfolio.availability_status === 'available' 
+                    ? `${portfolio.accent_color || '#f59e0b'}40`
+                    : '#fbbf2440',
+                  borderColor: portfolio.availability_status === 'available'
+                    ? portfolio.accent_color || '#f59e0b'
+                    : '#fbbf24'
+                }}
+              >
                 {portfolio.availability_status === 'available' ? '✅ Available for hire' : '⏰ Limited availability'}
                 {portfolio.hourly_rate && ` • ${portfolio.hourly_rate}`}
               </span>
@@ -267,45 +334,8 @@ const PublicPortfolio = () => {
             )}
           </div>
         </div>
+        </div>
       </section>
-
-      {/* Skills Section */}
-      {(portfolio.skills?.length > 0 || portfolio.languages?.length > 0) && (
-        <section className="bg-gray-50 dark:bg-gray-800/50 py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-8 text-center">Skills & Expertise</h2>
-            
-            <div className="max-w-4xl mx-auto space-y-8">
-              {portfolio.skills && portfolio.skills.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold mb-4">Technical Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {portfolio.skills.map((skill, index) => (
-                      <TechTag key={index} tech={skill} size="md" />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {portfolio.languages && portfolio.languages.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold mb-4">Languages</h3>
-                  <div className="flex flex-wrap gap-3">
-                    {portfolio.languages.map((lang, index) => (
-                      <span
-                        key={index}
-                        className="px-4 py-2 bg-white dark:bg-gray-700 rounded-lg font-medium text-gray-700 dark:text-gray-300 shadow-sm"
-                      >
-                        {lang}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Projects Section */}
       <section className="container mx-auto px-4 py-20">
@@ -353,7 +383,12 @@ const PublicPortfolio = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="h-full min-h-[300px] bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+                        <div 
+                          className="h-full min-h-[300px] flex items-center justify-center"
+                          style={{
+                            background: `linear-gradient(to bottom right, ${portfolio.theme_color || '#0284c7'}, ${portfolio.theme_color || '#0284c7'}dd)`
+                          }}
+                        >
                           <span className="text-white text-6xl opacity-20">📁</span>
                         </div>
                       )}
@@ -362,7 +397,14 @@ const PublicPortfolio = () => {
                     {/* Content Section */}
                     <div className={`p-6 md:p-8 flex flex-col justify-between ${isEven ? 'md:order-2' : 'md:order-1'}`}>
                       <div className="min-w-0">
-                        <h3 className="text-2xl md:text-3xl font-bold mb-4 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors break-words">
+                        <h3 
+                          className="text-2xl md:text-3xl font-bold mb-4 transition-colors break-words"
+                          style={{
+                            '--hover-color': portfolio.theme_color || '#0284c7'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = portfolio.theme_color || '#0284c7'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = ''}
+                        >
                           {project.title}
                         </h3>
 
@@ -385,7 +427,21 @@ const PublicPortfolio = () => {
                             href={project.demo_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all hover:scale-105 font-medium shadow-lg shadow-primary-500/30"
+                            className="flex-1 flex items-center justify-center gap-2 py-3 px-5 text-white rounded-xl transition-all hover:scale-105 font-medium shadow-lg"
+                            style={{
+                              backgroundColor: portfolio.theme_color || '#0284c7'
+                            }}
+                            onMouseEnter={(e) => {
+                              const color = portfolio.theme_color || '#0284c7';
+                              const hex = color.replace('#', '');
+                              const r = Math.max(0, parseInt(hex.substring(0, 2), 16) - 20);
+                              const g = Math.max(0, parseInt(hex.substring(2, 4), 16) - 20);
+                              const b = Math.max(0, parseInt(hex.substring(4, 6), 16) - 20);
+                              e.currentTarget.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = portfolio.theme_color || '#0284c7';
+                            }}
                           >
                             <FiExternalLink size={18} /> View Demo
                           </a>
@@ -419,14 +475,155 @@ const PublicPortfolio = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50 dark:bg-gray-800 py-8 mt-20">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-600 dark:text-gray-400">
-            © {new Date().getFullYear()} {portfolio.name}. All rights reserved.
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-            Portfolio powered by MyPorto
-          </p>
+      <footer className="relative overflow-hidden">
+        {/* Background with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950"></div>
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        
+        <div className="relative container mx-auto px-4 py-16">
+          {/* Skills & Expertise */}
+          {(portfolio.skills?.length > 0 || portfolio.languages?.length > 0) && (
+            <div className="max-w-6xl mx-auto mb-16">
+              {/* Header */}
+              <div className="text-center mb-12">
+                <div 
+                  className="inline-block px-4 py-2 rounded-full mb-4"
+                  style={{
+                    backgroundColor: `${portfolio.accent_color || '#f59e0b'}30`
+                  }}
+                >
+                  <span 
+                    className="text-sm font-semibold"
+                    style={{
+                      color: portfolio.accent_color || '#f59e0b'
+                    }}
+                  >
+                    🎯 MY EXPERTISE
+                  </span>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                  Skills & Technologies
+                </h3>
+                <p className="text-gray-400 max-w-2xl mx-auto">
+                  A collection of tools and technologies I work with to bring ideas to life
+                </p>
+              </div>
+              
+              {/* Skills Grid */}
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Technical Skills */}
+                {portfolio.skills && portfolio.skills.length > 0 && (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center"
+                        style={{
+                          background: `linear-gradient(to bottom right, ${portfolio.theme_color || '#0284c7'}, ${portfolio.secondary_color || '#6366f1'})`
+                        }}
+                      >
+                        <span className="text-2xl">💻</span>
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-white">Technical Skills</h4>
+                        <p className="text-sm text-gray-400">{portfolio.skills.length} technologies</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {portfolio.skills.map((skill, index) => (
+                        <TechTag key={index} tech={skill} size="md" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Languages */}
+                {portfolio.languages && portfolio.languages.length > 0 && (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center"
+                        style={{
+                          background: `linear-gradient(to bottom right, ${portfolio.secondary_color || '#6366f1'}, ${portfolio.accent_color || '#f59e0b'})`
+                        }}
+                      >
+                        <span className="text-2xl">🌍</span>
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-white">Languages</h4>
+                        <p className="text-sm text-gray-400">{portfolio.languages.length} languages</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {portfolio.languages.map((lang, index) => (
+                        <span
+                          key={index}
+                          className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg font-medium text-white shadow-sm border border-white/20 hover:bg-white/20 transition-colors"
+                        >
+                          {lang}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Single column for when only one category exists */}
+              {((portfolio.skills?.length > 0 && !portfolio.languages?.length) || 
+                (!portfolio.skills?.length && portfolio.languages?.length > 0)) && (
+                <div className="md:col-span-2"></div>
+              )}
+            </div>
+          )}
+
+          {/* Copyright */}
+          <div className="text-center border-t border-white/10 pt-8">
+            <div className="flex justify-center gap-6 mb-6">
+              {portfolio.github_url && (
+                <a
+                  href={portfolio.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiGithub size={20} />
+                </a>
+              )}
+              {portfolio.linkedin_url && (
+                <a
+                  href={portfolio.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiLinkedin size={20} />
+                </a>
+              )}
+              {portfolio.twitter_url && (
+                <a
+                  href={portfolio.twitter_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiTwitter size={20} />
+                </a>
+              )}
+              {portfolio.email && (
+                <a
+                  href={`mailto:${portfolio.email}`}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FiMail size={20} />
+                </a>
+              )}
+            </div>
+            <p className="text-gray-400 mb-2">
+              © {new Date().getFullYear()} {portfolio.name}. All rights reserved.
+            </p>
+            <p className="text-sm text-gray-500">
+              Built with ❤️ using BagdjaPorto
+            </p>
+          </div>
         </div>
       </footer>
     </div>

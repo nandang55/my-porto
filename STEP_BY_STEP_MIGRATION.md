@@ -24,7 +24,7 @@ Panduan praktis untuk menjalankan database migrations - sangat mudah diikuti!
 
 1. Klik **"New Project"**
 2. Isi form:
-   - **Name**: my-porto (atau nama apapun)
+   - **Name**: bagdja-porto (atau nama apapun)
    - **Database Password**: Simpan password ini! ⚠️
    - **Region**: Pilih yang terdekat (Singapore/Japan untuk Indonesia)
    - **Pricing Plan**: Free
@@ -43,7 +43,7 @@ Setelah project ready:
 
 ### 1.4 Setup Environment Variables
 
-1. Buka project my-porto di VS Code/editor
+1. Buka project bagdja-porto di VS Code/editor
 2. Buat file `.env` di root folder (sejajar dengan package.json)
 3. Isi dengan:
 
@@ -127,10 +127,10 @@ Ada 2 cara:
 
 ### 4.2 Link Project
 
-Di terminal, di folder `my-porto`:
+Di terminal, di folder `bagdja-porto`:
 
 ```bash
-cd /Users/nandanghermawan/Project/my-porto
+cd /Users/nandanghermawan/Project/bagdja-porto
 
 supabase link --project-ref xxxxx
 ```
