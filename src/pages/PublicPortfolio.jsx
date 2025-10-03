@@ -5,6 +5,7 @@ import { supabase } from '../services/supabase';
 import MediaGallery from '../components/MediaGallery';
 import TechTag from '../components/TechTag';
 import SearchBar from '../components/SearchBar';
+import TenantNavbar from '../components/TenantNavbar';
 import { getTextPreview, stripHtml } from '../utils/textHelpers';
 
 const PublicPortfolio = () => {
@@ -102,6 +103,9 @@ const PublicPortfolio = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
+      {/* Navigation */}
+      <TenantNavbar portfolio={portfolio} />
+
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white py-20">
         <div className="container mx-auto px-4 text-center">

@@ -13,6 +13,9 @@ import Blog from './pages/Blog';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import PublicPortfolio from './pages/PublicPortfolio';
+import TenantBlog from './pages/TenantBlog';
+import TenantAbout from './pages/TenantAbout';
+import TenantContact from './pages/TenantContact';
 
 // Admin Pages
 import Login from './pages/admin/Login';
@@ -80,8 +83,11 @@ function App() {
               }
             />
 
-                {/* Tenant Public Portfolio - Catch-all route */}
+                {/* Tenant Routes */}
                 <Route path="/:slug" element={<PublicPortfolio />} />
+                <Route path="/:slug/blog" element={<TenantBlog />} />
+                <Route path="/:slug/about" element={<TenantAbout />} />
+                <Route path="/:slug/contact" element={<TenantContact />} />
 
                 {/* 404 Not Found */}
                 <Route
