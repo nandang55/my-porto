@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { FiMail, FiTrash2 } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
+import BackButton from '../../components/BackButton';
+import { useAlert } from '../../context/AlertContext';
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const alert = useAlert();
 
   useEffect(() => {
     fetchMessages();
@@ -27,7 +30,7 @@ const AdminMessages = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
+    if (!window.confirm('Are you sure you want to delete this message?')) return;
 
     try {
       const { error } = await supabase
@@ -37,9 +40,10 @@ const AdminMessages = () => {
 
       if (error) throw error;
       await fetchMessages();
+      alert.success('Message deleted successfully!');
     } catch (error) {
       console.error('Error deleting message:', error);
-      alert('Failed to delete message.');
+      alert.error('Failed to delete message. Please try again.');
     }
   };
 
@@ -48,7 +52,11 @@ const AdminMessages = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8">Contact Messages</h1>
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-3 mb-8">
+          <BackButton iconOnly={true} size={32} />
+          <h1 className="text-3xl font-bold">Contact Messages</h1>
+        </div>
 
         <div className="space-y-4">
           {messages.map((message) => (

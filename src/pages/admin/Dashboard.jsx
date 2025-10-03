@@ -2,10 +2,59 @@ import { Link } from 'react-router-dom';
 import { FiFileText, FiBriefcase, FiMail, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../services/supabase';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    projectsPublished: 0,
+    projectsTotal: 0,
+    blogPosts: 0,
+    messages: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch total projects count
+      const { count: projectsTotal } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch published projects count
+      const { count: projectsPublished } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('published', true);
+
+      // Fetch blog posts count
+      const { count: blogCount } = await supabase
+        .from('blog_posts')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch messages count
+      const { count: messagesCount } = await supabase
+        .from('contact_messages')
+        .select('*', { count: 'exact', head: true });
+
+      setStats({
+        projectsPublished: projectsPublished || 0,
+        projectsTotal: projectsTotal || 0,
+        blogPosts: blogCount || 0,
+        messages: messagesCount || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -55,6 +104,49 @@ const Dashboard = () => {
           </button>
         </div>
 
+        {/* Quick Stats */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Quick Stats</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+              <p className="text-sm opacity-90 mb-1">Total Projects</p>
+              {loading ? (
+                <div className="animate-pulse">
+                  <div className="h-9 bg-white/20 rounded w-20"></div>
+                </div>
+              ) : (
+                <p className="text-3xl font-bold">
+                  {stats.projectsPublished}
+                  <span className="text-xl opacity-75">/{stats.projectsTotal}</span>
+                </p>
+              )}
+              {!loading && (
+                <p className="text-xs opacity-75 mt-1">Published / Total</p>
+              )}
+            </div>
+            <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+              <p className="text-sm opacity-90 mb-1">Blog Posts</p>
+              {loading ? (
+                <div className="animate-pulse">
+                  <div className="h-9 bg-white/20 rounded w-12"></div>
+                </div>
+              ) : (
+                <p className="text-3xl font-bold">{stats.blogPosts}</p>
+              )}
+            </div>
+            <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+              <p className="text-sm opacity-90 mb-1">Messages</p>
+              {loading ? (
+                <div className="animate-pulse">
+                  <div className="h-9 bg-white/20 rounded w-12"></div>
+                </div>
+              ) : (
+                <p className="text-3xl font-bold">{stats.messages}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Menu Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {menuItems.map((item) => {
@@ -77,25 +169,6 @@ const Dashboard = () => {
               </Link>
             );
           })}
-        </div>
-
-        {/* Quick Stats */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Quick Stats</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-              <p className="text-sm opacity-90 mb-1">Total Projects</p>
-              <p className="text-3xl font-bold">0</p>
-            </div>
-            <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
-              <p className="text-sm opacity-90 mb-1">Blog Posts</p>
-              <p className="text-3xl font-bold">0</p>
-            </div>
-            <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-              <p className="text-sm opacity-90 mb-1">Messages</p>
-              <p className="text-3xl font-bold">0</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

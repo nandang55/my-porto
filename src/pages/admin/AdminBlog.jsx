@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FiPlus, FiEdit, FiTrash2, FiX } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
+import RichTextEditor from '../../components/RichTextEditor';
+import BackButton from '../../components/BackButton';
+import { useAlert } from '../../context/AlertContext';
 
 const AdminBlog = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
+  const [content, setContent] = useState('');
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const alert = useAlert();
 
   useEffect(() => {
     fetchPosts();
@@ -35,7 +40,7 @@ const AdminBlog = () => {
       const postData = {
         title: data.title,
         excerpt: data.excerpt,
-        content: data.content,
+        content: content, // Use content from state (rich text HTML)
         slug: data.slug || data.title.toLowerCase().replace(/\s+/g, '-'),
       };
 
@@ -57,10 +62,18 @@ const AdminBlog = () => {
       await fetchPosts();
       setShowForm(false);
       setEditingPost(null);
+      setContent('');
       reset();
+      
+      // Show success message
+      if (editingPost) {
+        alert.success('Blog post updated successfully!');
+      } else {
+        alert.success('Blog post published successfully!');
+      }
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Failed to save post. Make sure Supabase is properly configured.');
+      alert.error('Failed to save post. Make sure Supabase is properly configured.');
     }
   };
 
@@ -69,14 +82,14 @@ const AdminBlog = () => {
     reset({
       title: post.title,
       excerpt: post.excerpt,
-      content: post.content,
       slug: post.slug,
     });
+    setContent(post.content || '');
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
       const { error } = await supabase
@@ -86,15 +99,17 @@ const AdminBlog = () => {
 
       if (error) throw error;
       await fetchPosts();
+      alert.success('Blog post deleted successfully!');
     } catch (error) {
       console.error('Error deleting post:', error);
-      alert('Failed to delete post.');
+      alert.error('Failed to delete post. Please try again.');
     }
   };
 
   const handleCancel = () => {
     setShowForm(false);
     setEditingPost(null);
+    setContent('');
     reset();
   };
 
@@ -103,8 +118,12 @@ const AdminBlog = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="container mx-auto px-4">
+        {/* Header with Back Button */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Manage Blog</h1>
+          <div className="flex items-center gap-3">
+            <BackButton iconOnly={true} size={32} />
+            <h1 className="text-3xl font-bold">Manage Blog</h1>
+          </div>
           <button
             onClick={() => setShowForm(true)}
             className="btn-primary flex items-center gap-2"
@@ -157,15 +176,18 @@ const AdminBlog = () => {
                   {errors.excerpt && <p className="text-red-500 text-sm mt-1">{errors.excerpt.message}</p>}
                 </div>
 
+                {/* Rich Text Content */}
                 <div>
-                  <label className="block font-medium mb-2">Content</label>
-                  <textarea
-                    {...register('content', { required: 'Content is required' })}
-                    className="input-field"
-                    rows="10"
-                    placeholder="Full post content (Markdown supported)"
+                  <label className="block font-medium mb-3">Content</label>
+                  <RichTextEditor
+                    value={content}
+                    onChange={setContent}
+                    placeholder="Write your blog post content. Use the toolbar to format text, add headings, lists, links, and more..."
+                    minHeight="400px"
                   />
-                  {errors.content && <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>}
+                  {!content && (
+                    <p className="text-red-500 text-sm mt-1">Content is required</p>
+                  )}
                 </div>
 
                 <div className="flex gap-4 pt-4">

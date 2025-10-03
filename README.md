@@ -12,6 +12,15 @@ A modern, responsive portfolio website built with React.js and Supabase, featuri
 - 📧 Contact form with Supabase integration
 - 🔐 Admin panel with authentication
 - ⚡ Fast and optimized with Vite
+- 🖼️ **NEW!** Multiple image & video upload with drag-and-drop
+- 📤 **NEW!** Supabase Storage integration for media files
+- 🎬 **NEW!** Auto video thumbnail generation
+- 🖼️ **NEW!** Lightbox gallery for media viewing
+- 🔔 **NEW!** Beautiful global notification system (no more browser alerts!)
+- 🏷️ **NEW!** Tech stack tags with autocomplete & color coding (50+ popular tech!)
+- 📝 **NEW!** Professional WYSIWYG editor with CKEditor 5 (formatting, tables, links, etc!)
+- 📊 **NEW!** Order & Publish control (sort projects, save as draft/published!)
+- 🔍 **NEW!** Global search with real-time filtering (search by name, tech, description!)
 
 ## Tech Stack
 
@@ -173,6 +182,20 @@ create policy "Authenticated users can delete messages"
 
 In Supabase, go to Authentication > Users and create a new user with your email and password. This will be your admin login.
 
+### Setup Supabase Storage (For Media Upload)
+
+To enable image and video uploads:
+
+1. Go to your Supabase Dashboard
+2. Navigate to **Storage** section
+3. Click **"New Bucket"**
+4. Create bucket:
+   - Name: `project-media`
+   - Public: ✅ **Yes**
+5. Setup storage policies (RLS)
+
+For detailed instructions, see **`SUPABASE_STORAGE_SETUP.md`**
+
 ### Running the Development Server
 
 ```bash
@@ -290,6 +313,13 @@ This project includes comprehensive documentation:
 - **README.md** (this file) - Complete setup and usage guide
 - **QUICK_START.md** - Quick start guide for beginners
 - **SUPABASE_SETUP.md** - Manual database setup guide
+- **SUPABASE_STORAGE_SETUP.md** - 🆕 Supabase Storage setup for media uploads
+- **MEDIA_UPLOAD_FEATURE.md** - 🆕 Complete guide to new media upload feature
+- **ALERT_SYSTEM.md** - 🆕 Global notification/alert system guide
+- **TECH_STACK_FEATURE.md** - 🆕 Tech stack tags with autocomplete guide
+- **WYSIWYG_EDITOR.md** - 🆕 Rich text editor with CKEditor 5 guide
+- **ORDER_AND_PUBLISH_FEATURE.md** - 🆕 Order & Publish control guide
+- **SEARCH_FEATURE.md** - 🆕 Global search with real-time filtering guide
 - **MIGRATION_GUIDE.md** - Database migrations guide (Laravel-style) ⭐
 - **LARAVEL_VS_SUPABASE.md** - Comparison between Laravel and Supabase migrations
 

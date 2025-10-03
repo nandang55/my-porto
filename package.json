@@ -18,6 +18,8 @@
     "supabase:status": "supabase status"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-react": "^11.0.0",
     "@supabase/supabase-js": "^2.58.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

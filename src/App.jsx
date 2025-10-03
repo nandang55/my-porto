@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { AlertProvider } from './context/AlertContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -22,8 +23,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <Routes>
+        <AlertProvider>
+          <Router>
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Layout><Home /></Layout>} />
             <Route path="/portfolio" element={<Layout><Portfolio /></Layout>} />
@@ -83,8 +85,9 @@ function App() {
                 </Layout>
               }
             />
-          </Routes>
-        </Router>
+            </Routes>
+          </Router>
+        </AlertProvider>
       </AuthProvider>
     </ThemeProvider>
   );
