@@ -3,14 +3,15 @@ import { FiMenu, FiX, FiHome } from 'react-icons/fi';
 import { useState } from 'react';
 import DarkModeToggle from './DarkModeToggle';
 
-const TenantNavbar = ({ portfolio }) => {
+const TenantNavbar = ({ portfolio, hasLandingPage = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
   if (!portfolio) return null;
 
   const navLinks = [
-    { name: 'Home', path: `/${portfolio.slug}`, icon: FiHome },
+    // Only show Home menu if landing page is active
+    ...(hasLandingPage ? [{ name: 'Home', path: `/${portfolio.slug}`, icon: FiHome }] : []),
     { name: 'Projects', path: `/${portfolio.slug}/projects` },
     { name: 'Blog', path: `/${portfolio.slug}/blog` },
     { name: 'About', path: `/${portfolio.slug}/about` },

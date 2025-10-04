@@ -3,12 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { FiCalendar, FiClock, FiArrowRight, FiEye } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
+import { useTenant } from '../context/TenantContext';
 import SearchBar from '../components/SearchBar';
 import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 import { getTextPreview, stripHtml } from '../utils/textHelpers';
 
 const TenantBlog = () => {
   const { slug } = useParams();
+  const { hasLandingPage } = useTenant();
   const [portfolio, setPortfolio] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -148,7 +150,7 @@ const TenantBlog = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <TenantNavbar portfolio={portfolio} />
+      <TenantNavbar portfolio={portfolio} hasLandingPage={hasLandingPage} />
 
       {/* Hero Section with Parallax */}
       <section 

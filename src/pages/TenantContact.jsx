@@ -4,11 +4,13 @@ import { useForm } from 'react-hook-form';
 import { FiMail, FiPhone, FiMapPin, FiSend } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
+import { useTenant } from '../context/TenantContext';
 import { useAlert } from '../context/AlertContext';
 import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const TenantContact = () => {
   const { slug } = useParams();
+  const { hasLandingPage } = useTenant();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -88,7 +90,7 @@ const TenantContact = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <TenantNavbar portfolio={portfolio} />
+      <TenantNavbar portfolio={portfolio} hasLandingPage={hasLandingPage} />
 
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-5xl mx-auto">

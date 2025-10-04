@@ -7,28 +7,24 @@ import TechTag from '../components/TechTag';
 import SearchBar from '../components/SearchBar';
 import TenantNavbar from '../components/TenantNavbar';
 import LandingPageRenderer from '../components/LandingPageRenderer';
+import { useTenant } from '../context/TenantContext';
 import { stripHtml } from '../utils/textHelpers';
 import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const PublicPortfolio = () => {
   const { slug } = useParams();
   const location = useLocation();
+  const { hasLandingPage } = useTenant();
   const [portfolio, setPortfolio] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [notFound, setNotFound] = useState(false);
-  const [hasLandingPage, setHasLandingPage] = useState(false);
 
   useEffect(() => {
     fetchPortfolioData();
   }, [slug]);
 
-  useEffect(() => {
-    if (portfolio?.user_id) {
-      checkLandingPage();
-    }
-  }, [portfolio]);
 
   // Apply theme colors as CSS variables
   useEffect(() => {
@@ -117,28 +113,6 @@ const PublicPortfolio = () => {
     }
   };
 
-  const checkLandingPage = async () => {
-    if (!portfolio?.user_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('landing_pages')
-        .select('id')
-        .eq('user_id', portfolio.user_id)
-        .eq('is_active', true)
-        .limit(1);
-
-      console.log('Tenant landing page check:', { data, error, userId: portfolio.user_id });
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking tenant landing page:', error);
-      }
-
-      setHasLandingPage(data && data.length > 0);
-    } catch (error) {
-      console.error('Error checking tenant landing page:', error);
-    }
-  };
 
   // Filter projects based on search query
   const filteredProjects = useMemo(() => {
@@ -196,7 +170,7 @@ const PublicPortfolio = () => {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Navigation */}
-        <TenantNavbar portfolio={portfolio} />
+        <TenantNavbar portfolio={portfolio} hasLandingPage={hasLandingPage} />
         
         {/* Landing Page Content */}
         <LandingPageRenderer tenantSlug={slug} />
@@ -207,7 +181,7 @@ const PublicPortfolio = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Navigation */}
-      <TenantNavbar portfolio={portfolio} />
+      <TenantNavbar portfolio={portfolio} hasLandingPage={hasLandingPage} />
 
       {/* Hero Section */}
       <section 

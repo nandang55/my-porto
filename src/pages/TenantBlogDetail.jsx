@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiCalendar, FiClock, FiArrowLeft, FiUser, FiEye } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
+import { useTenant } from '../context/TenantContext';
 import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const TenantBlogDetail = () => {
   const { slug, postSlug } = useParams();
   const navigate = useNavigate();
+  const { hasLandingPage } = useTenant();
   const [portfolio, setPortfolio] = useState(null);
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -163,7 +165,7 @@ const TenantBlogDetail = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <TenantNavbar portfolio={portfolio} />
+      <TenantNavbar portfolio={portfolio} hasLandingPage={hasLandingPage} />
 
       {/* Hero Section with Cover Image */}
       <section className="relative">

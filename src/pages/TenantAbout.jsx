@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom';
 import { FiMail, FiPhone, FiMapPin, FiGlobe, FiGithub, FiLinkedin, FiTwitter, FiInstagram, FiBriefcase, FiClock, FiDownload } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
+import { useTenant } from '../context/TenantContext';
 import TechTag from '../components/TechTag';
 import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const TenantAbout = () => {
   const { slug } = useParams();
+  const { hasLandingPage } = useTenant();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,7 +59,7 @@ const TenantAbout = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <TenantNavbar portfolio={portfolio} />
+      <TenantNavbar portfolio={portfolio} hasLandingPage={hasLandingPage} />
 
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto">

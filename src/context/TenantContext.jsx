@@ -15,6 +15,7 @@ export const useTenant = () => {
 
 export const TenantProvider = ({ children }) => {
   const [currentTenant, setCurrentTenant] = useState(null);
+  const [hasLandingPage, setHasLandingPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
@@ -70,11 +71,37 @@ export const TenantProvider = ({ children }) => {
 
       if (error) throw error;
       setCurrentTenant(data);
+      
+      // Check if tenant has an active landing page
+      if (data?.user_id) {
+        await checkLandingPage(data.user_id);
+      }
     } catch (error) {
       console.error('Error fetching tenant:', error);
       setCurrentTenant(null);
+      setHasLandingPage(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkLandingPage = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('landing_pages')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .limit(1);
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking tenant landing page:', error);
+      }
+
+      setHasLandingPage(data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking tenant landing page:', error);
+      setHasLandingPage(false);
     }
   };
 
@@ -84,6 +111,7 @@ export const TenantProvider = ({ children }) => {
 
   const value = {
     currentTenant,
+    hasLandingPage,
     loading,
     refreshTenant,
   };
