@@ -540,7 +540,7 @@ const Settings = () => {
               <p className="text-sm text-purple-700 dark:text-purple-300 mb-2 font-medium">
                 🚀 Subdomain URL (Recommended):
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-3">
                 <code className="flex-1 text-base font-mono text-purple-600 dark:text-purple-400 break-all">
                   {subdomainUrl}
                 </code>
@@ -553,7 +553,19 @@ const Settings = () => {
                   <FiExternalLink size={16} /> Visit
                 </a>
               </div>
-              <p className="text-xs text-purple-600 dark:text-purple-400 mt-2">
+              
+              {/* Warning Message */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-2">
+                <p className="text-xs text-yellow-800 dark:text-yellow-200 flex items-start gap-2">
+                  <span className="text-base">⏰</span>
+                  <span>
+                    <strong>Perhatian:</strong> Subdomain memerlukan setup manual dan akan aktif dalam waktu <strong>2x24 jam</strong> setelah slug dibuat atau diubah. 
+                    Mohon maaf atas ketidaknyamanan ini. Sementara waktu, gunakan Portfolio URL (Path) di atas untuk mengakses portfolio Anda.
+                  </span>
+                </p>
+              </div>
+              
+              <p className="text-xs text-purple-600 dark:text-purple-400">
                 💡 More professional URL with subdomain pattern
               </p>
             </div>
