@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiExternalLink, FiGithub, FiMail, FiLinkedin, FiTwitter, FiInstagram, FiGlobe, FiMapPin, FiPhone, FiDownload, FiBriefcase, FiClock } from 'react-icons/fi';
+import { FiExternalLink, FiGithub, FiMail, FiLinkedin, FiTwitter, FiInstagram, FiGlobe, FiMapPin, FiPhone, FiDownload, FiBriefcase, FiClock, FiEye } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 import MediaGallery from '../components/MediaGallery';
 import TechTag from '../components/TechTag';
@@ -82,7 +82,23 @@ const PublicPortfolio = () => {
         .order('created_at', { ascending: false });
 
       if (projectsError) throw projectsError;
-      setProjects(projectsData || []);
+
+      // Fetch view counts for all projects
+      const projectsWithViews = await Promise.all(
+        (projectsData || []).map(async (project) => {
+          const { count } = await supabase
+            .from('project_views')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', project.id);
+          
+          return {
+            ...project,
+            view_count: count || 0,
+          };
+        })
+      );
+
+      setProjects(projectsWithViews);
       setNotFound(false);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
@@ -407,19 +423,35 @@ const PublicPortfolio = () => {
                         </h3>
 
                         <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed break-words">
-                          {getTextPreview(project.description, 250)}
+                          {project.excerpt || getTextPreview(project.description, 250)}
                         </p>
 
                         {project.tech_stack && project.tech_stack.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-6">
+                          <div className="flex flex-wrap gap-2 mb-4">
                             {project.tech_stack.map((tech, techIndex) => (
                               <TechTag key={techIndex} tech={tech} size="sm" />
                             ))}
                           </div>
                         )}
+
+                        {/* Meta Info */}
+                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
+                          <div className="flex items-center gap-1">
+                            <FiEye size={14} />
+                            <span>{project.view_count || 0} views</span>
+                          </div>
+                          <span>•</span>
+                          <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                        </div>
                       </div>
 
                       <div className="flex gap-3">
+                        <Link
+                          to={`/${slug}/project/${project.slug}`}
+                          className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl transition-all hover:scale-105 font-medium shadow-lg"
+                        >
+                          <FiExternalLink size={18} /> View Details
+                        </Link>
                         {project.demo_url && (
                           <a
                             href={project.demo_url}
@@ -441,7 +473,7 @@ const PublicPortfolio = () => {
                               e.currentTarget.style.backgroundColor = portfolio.theme_color || '#0284c7';
                             }}
                           >
-                            <FiExternalLink size={18} /> View Demo
+                            <FiExternalLink size={18} /> Live Demo
                           </a>
                         )}
                         {project.github_url && (
@@ -451,7 +483,7 @@ const PublicPortfolio = () => {
                             rel="noopener noreferrer"
                             className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-xl transition-all hover:scale-105 font-medium shadow-lg"
                           >
-                            <FiGithub size={18} /> View Code
+                            <FiGithub size={18} /> Source Code
                           </a>
                         )}
                       </div>

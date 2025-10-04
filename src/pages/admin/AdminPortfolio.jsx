@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { FiPlus, FiEdit, FiTrash2, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiX, FiEye } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
 import MediaUploader from '../../components/MediaUploader';
 import TechStackInput from '../../components/TechStackInput';
@@ -8,6 +8,7 @@ import TechTag from '../../components/TechTag';
 import RichTextEditor from '../../components/RichTextEditor';
 import SearchBar from '../../components/SearchBar';
 import BackButton from '../../components/BackButton';
+import AdminNavbar from '../../components/AdminNavbar';
 import { useAlert } from '../../context/AlertContext';
 import { useAuth } from '../../context/AuthContext';
 import { getTextPreview, stripHtml } from '../../utils/textHelpers';
@@ -41,7 +42,23 @@ const AdminPortfolio = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
+
+      // Fetch view counts for all projects
+      const projectsWithViews = await Promise.all(
+        (data || []).map(async (project) => {
+          const { count } = await supabase
+            .from('project_views')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', project.id);
+          
+          return {
+            ...project,
+            view_count: count || 0,
+          };
+        })
+      );
+
+      setProjects(projectsWithViews);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {
@@ -51,12 +68,29 @@ const AdminPortfolio = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Validate required fields
+      if (!data.title || !data.slug) {
+        alert.error('Title and Slug are required fields.');
+        return;
+      }
+
       // Get featured media URL (for backward compatibility with old 'image' column)
       const featuredMedia = media.find(m => m.featured);
       const featuredUrl = featuredMedia?.url || media[0]?.url || null;
 
+      // Generate slug from title if not provided
+      let projectSlug = data.slug || '';
+      if (!projectSlug && data.title) {
+        projectSlug = data.title.toLowerCase()
+          .replace(/[^a-z0-9\s]/g, '')
+          .replace(/\s+/g, '-')
+          .trim();
+      }
+
       const projectData = {
         title: data.title,
+        slug: projectSlug.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+        excerpt: data.excerpt || '',
         description: description, // Use description from state (rich text HTML)
         image: featuredUrl, // Keep for backward compatibility
         demo_url: data.demo_url,
@@ -113,6 +147,8 @@ const AdminPortfolio = () => {
     setEditingProject(project);
     reset({
       title: project.title,
+      slug: project.slug || '',
+      excerpt: project.excerpt || '',
       demo_url: project.demo_url,
       github_url: project.github_url,
       order: project.order || 0,
@@ -203,8 +239,9 @@ const AdminPortfolio = () => {
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AdminNavbar />
+      <div className="container mx-auto px-4 max-w-5xl py-8">
         {/* Header with Back Button */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -250,6 +287,53 @@ const AdminPortfolio = () => {
                     placeholder="Project title"
                   />
                   {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-2">URL Slug</label>
+                  <input
+                    {...register('slug', { required: 'Slug is required' })}
+                    className="input-field"
+                    placeholder="project-url-slug"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setValue('slug', value);
+                    }}
+                  />
+                  {errors.slug && <p className="text-red-500 text-sm mt-1">{errors.slug.message}</p>}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    URL-friendly identifier (lowercase, no spaces, use hyphens)
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const title = watch('title');
+                      if (title) {
+                        const slug = title.toLowerCase()
+                          .replace(/[^a-z0-9\s]/g, '')
+                          .replace(/\s+/g, '-')
+                          .trim();
+                        setValue('slug', slug);
+                      }
+                    }}
+                    className="text-xs text-primary-600 hover:text-primary-700 mt-1"
+                  >
+                    Generate from title
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block font-medium mb-2">Excerpt</label>
+                  <textarea
+                    {...register('excerpt')}
+                    className="input-field resize-none"
+                    rows="3"
+                    placeholder="Short description for project cards and listings..."
+                  />
+                  {errors.excerpt && <p className="text-red-500 text-sm mt-1">{errors.excerpt.message}</p>}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Brief summary (recommended: 100-200 characters)
+                  </p>
                 </div>
 
                 {/* Rich Text Description */}
@@ -391,7 +475,7 @@ const AdminPortfolio = () => {
                 )}
                 <h3 className="text-xl font-bold mb-2">{project.title}</h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-3 line-clamp-3">
-                  {getTextPreview(project.description, 200)}
+                  {project.excerpt || getTextPreview(project.description, 200)}
                 </p>
                 
                 {/* Tech Stack Tags */}
@@ -407,6 +491,15 @@ const AdminPortfolio = () => {
                     )}
                   </div>
                 )}
+                
+                {/* Project Meta Info */}
+                <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="flex items-center gap-1">
+                    <FiEye size={14} />
+                    <span>{project.view_count || 0} views</span>
+                  </div>
+                  <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                </div>
                 
                 <div className="flex gap-2">
                   <button

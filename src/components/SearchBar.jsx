@@ -1,7 +1,7 @@
 import { FiSearch, FiX } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 
-const SearchBar = ({ onSearch, placeholder = 'Search...', resultCount = null }) => {
+const SearchBar = ({ onSearch, placeholder = 'Search...', resultCount = null, resultType = 'projects' }) => {
   const [searchValue, setSearchValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
@@ -65,7 +65,7 @@ const SearchBar = ({ onSearch, placeholder = 'Search...', resultCount = null }) 
             {resultCount !== null && (
               <>
                 Found <span className="font-bold text-primary-600 dark:text-primary-400">{resultCount}</span>{' '}
-                {resultCount === 1 ? 'project' : 'projects'} matching "{searchValue}"
+                {resultCount === 1 ? resultType.slice(0, -1) : resultType} matching "{searchValue}"
               </>
             )}
           </p>
@@ -76,7 +76,7 @@ const SearchBar = ({ onSearch, placeholder = 'Search...', resultCount = null }) 
       {isFocused && !searchValue && (
         <div className="mt-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
           <p className="text-xs text-primary-700 dark:text-primary-300 text-center">
-            💡 <strong>Tip:</strong> Search by project name, description, or technology (e.g., "React", "E-Commerce")
+            💡 <strong>Tip:</strong> Search by {resultType.slice(0, -1)} name, description, or content
           </p>
         </div>
       )}

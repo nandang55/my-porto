@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FiMail, FiTrash2 } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
 import BackButton from '../../components/BackButton';
+import AdminNavbar from '../../components/AdminNavbar';
 import { useAlert } from '../../context/AlertContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -55,8 +56,9 @@ const AdminMessages = () => {
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AdminNavbar />
+      <div className="container mx-auto px-4 max-w-5xl py-8">
         {/* Header with Back Button */}
         <div className="flex items-center gap-3 mb-8">
           <BackButton iconOnly={true} size={32} />

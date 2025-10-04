@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { FiSave, FiExternalLink, FiUser, FiMail, FiShare2, FiCode, FiFileText, FiUpload, FiX, FiDroplet } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
 import BackButton from '../../components/BackButton';
+import AdminNavbar from '../../components/AdminNavbar';
 import SkillsInput from '../../components/SkillsInput';
 import LanguagesInput from '../../components/LanguagesInput';
 import { useAlert } from '../../context/AlertContext';
@@ -497,8 +498,9 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="container mx-auto px-4 max-w-5xl">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AdminNavbar />
+      <div className="container mx-auto px-4 max-w-5xl py-8">
         {/* Header with Back Button */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-2">

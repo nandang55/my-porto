@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { AlertProvider } from './context/AlertContext';
@@ -12,6 +12,8 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import PublicPortfolio from './pages/PublicPortfolio';
 import TenantBlog from './pages/TenantBlog';
+import TenantBlogDetail from './pages/TenantBlogDetail';
+import TenantProjectDetail from './pages/TenantProjectDetail';
 import TenantAbout from './pages/TenantAbout';
 import TenantContact from './pages/TenantContact';
 
@@ -38,6 +40,7 @@ function App() {
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route
               path="/admin/dashboard"
               element={
@@ -81,7 +84,9 @@ function App() {
 
                 {/* Tenant Routes */}
                 <Route path="/:slug" element={<PublicPortfolio />} />
+                <Route path="/:slug/project/:projectSlug" element={<TenantProjectDetail />} />
                 <Route path="/:slug/blog" element={<TenantBlog />} />
+                <Route path="/:slug/blog/:postSlug" element={<TenantBlogDetail />} />
                 <Route path="/:slug/about" element={<TenantAbout />} />
                 <Route path="/:slug/contact" element={<TenantContact />} />
 
