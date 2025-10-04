@@ -10,10 +10,64 @@ import BlogCard from './BlogCard';
 const LandingPageRenderer = ({ userId = null, tenantSlug = null }) => {
   const [landingPage, setLandingPage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState({});
+  const [posts, setPosts] = useState({});
 
   useEffect(() => {
     fetchLandingPage();
   }, [userId, tenantSlug]);
+
+  // Fetch projects by IDs
+  const fetchProjects = async (projectIds, pageUserId) => {
+    if (!projectIds || projectIds.length === 0) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .in('id', projectIds)
+        .eq('user_id', pageUserId)
+        .eq('published', true);
+      
+      if (error) throw error;
+      
+      // Create map of id => project
+      const projectsMap = {};
+      (data || []).forEach(project => {
+        projectsMap[project.id] = project;
+      });
+      
+      setProjects(prev => ({ ...prev, ...projectsMap }));
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  };
+
+  // Fetch posts by IDs
+  const fetchPosts = async (postIds, pageUserId) => {
+    if (!postIds || postIds.length === 0) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .in('id', postIds)
+        .eq('user_id', pageUserId)
+        .eq('published', true);
+      
+      if (error) throw error;
+      
+      // Create map of id => post
+      const postsMap = {};
+      (data || []).forEach(post => {
+        postsMap[post.id] = post;
+      });
+      
+      setPosts(prev => ({ ...prev, ...postsMap }));
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
+  };
 
   const getServiceColor = (index) => {
     const colors = [
@@ -62,6 +116,24 @@ const LandingPageRenderer = ({ userId = null, tenantSlug = null }) => {
       }
 
       setLandingPage(data || null);
+      
+      // Fetch projects and posts by IDs if landing page exists
+      if (data?.content) {
+        const content = data.content;
+        const pageUserId = data.user_id;
+        
+        // Find portfolio components and fetch their projects
+        content.forEach(component => {
+          if (component.type === 'portfolio' && component.data?.selectedProjectIds) {
+            fetchProjects(component.data.selectedProjectIds, pageUserId);
+          }
+          
+          // Find blog components and fetch their posts
+          if (component.type === 'blog' && component.data?.selectedPostIds) {
+            fetchPosts(component.data.selectedPostIds, pageUserId);
+          }
+        });
+      }
     } catch (error) {
       console.error('Error fetching landing page:', error);
     } finally {
@@ -102,6 +174,8 @@ const LandingPageRenderer = ({ userId = null, tenantSlug = null }) => {
             key={component.id || index}
             component={component}
             tenantSlug={tenantSlug}
+            projects={projects}
+            posts={posts}
           />
         ))}
     </div>
@@ -109,7 +183,7 @@ const LandingPageRenderer = ({ userId = null, tenantSlug = null }) => {
 };
 
 // Component Renderer for each component type
-const ComponentRenderer = ({ component, tenantSlug }) => {
+const ComponentRenderer = ({ component, tenantSlug, projects, posts }) => {
   if (!component.visible) return null;
 
   switch (component.type) {
@@ -140,9 +214,16 @@ const ComponentRenderer = ({ component, tenantSlug }) => {
               <p className="text-xl md:text-2xl mb-8 opacity-90">
                 {component.data?.subtitle || 'Create amazing experiences with our platform'}
               </p>
-              <button className="bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors">
+              <a 
+                href={component.data?.buttonLink || '#'}
+                className="inline-block px-8 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition-all"
+                style={{
+                  backgroundColor: component.data?.buttonBackgroundColor || '#ffffff',
+                  color: component.data?.buttonTextColor || '#667eea'
+                }}
+              >
                 {component.data?.buttonText || 'Get Started'}
-              </button>
+              </a>
             </div>
           </div>
         </section>
@@ -271,6 +352,11 @@ const ComponentRenderer = ({ component, tenantSlug }) => {
       );
 
     case 'portfolio':
+      // Get projects by IDs from fetched data
+      const portfolioProjects = (component.data?.selectedProjectIds || [])
+        .map(id => projects[id])
+        .filter(Boolean);
+      
       return (
         <section 
           className="py-16"
@@ -285,9 +371,9 @@ const ComponentRenderer = ({ component, tenantSlug }) => {
             
         {/* Portfolio Projects */}
         <div className="max-w-6xl mx-auto space-y-12">
-          {(component.data?.selectedProjects || []).map((project, index) => (
+          {portfolioProjects.map((project, index) => (
             <ProjectCard 
-              key={project.id || index}
+              key={project.id}
               project={project}
               index={index}
               showAnimation={false}
@@ -295,6 +381,11 @@ const ComponentRenderer = ({ component, tenantSlug }) => {
               showViewDetails={true}
             />
           ))}
+          {portfolioProjects.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              No projects available
+            </div>
+          )}
         </div>
           
           {/* See All Button */}
@@ -318,6 +409,11 @@ const ComponentRenderer = ({ component, tenantSlug }) => {
     );
 
     case 'blog':
+      // Get posts by IDs from fetched data
+      const blogPosts = (component.data?.selectedPostIds || [])
+        .map(id => posts[id])
+        .filter(Boolean);
+      
       return (
         <section 
           className="py-16"
@@ -331,16 +427,16 @@ const ComponentRenderer = ({ component, tenantSlug }) => {
             <p className="text-xl text-center mb-12 opacity-80">{component.data?.subtitle || 'Read our thoughts and insights'}</p>
             
             {/* Blog Posts Grid */}
-            {component.data?.selectedPosts && component.data.selectedPosts.length > 0 ? (
+            {blogPosts.length > 0 ? (
               <div className={`grid gap-8 ${
                 component.data.columns === 1 ? 'grid-cols-1' :
                 component.data.columns === 2 ? 'grid-cols-1 md:grid-cols-2' :
                 component.data.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
                 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
               }`}>
-                {(component.data.selectedPosts || []).map((post, index) => (
+                {blogPosts.map((post, index) => (
                   <BlogCard 
-                    key={post.id || index}
+                    key={post.id}
                     post={post}
                     index={index}
                     baseUrl={tenantSlug ? `/${tenantSlug}` : ''}
@@ -350,10 +446,8 @@ const ComponentRenderer = ({ component, tenantSlug }) => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4 opacity-20">📝</div>
-                <h3 className="text-xl font-semibold mb-2">No blog posts selected</h3>
-                <p className="text-gray-500">Add some blog posts to display here.</p>
+              <div className="text-center py-12 text-gray-500">
+                No blog posts available
               </div>
             )}
             

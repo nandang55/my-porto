@@ -605,6 +605,8 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
         subtitle: 'Create amazing experiences with our platform',
         buttonText: 'Get Started',
         buttonLink: '#',
+        buttonBackgroundColor: '#ffffff',
+        buttonTextColor: '#667eea',
         backgroundImage: '',
         backgroundColor: '#667eea',
         backgroundType: 'gradient',
@@ -680,7 +682,7 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
       portfolio: {
         title: 'Our Work',
         subtitle: 'Portfolio showcase',
-        selectedProjects: [],
+        selectedProjectIds: [],  // Changed: store only IDs
         showButton: true,
         buttonText: 'See All Projects',
         buttonLink: getPortfolioUrl(),
@@ -692,7 +694,7 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
       blog: {
         title: 'Latest Blog Posts',
         subtitle: 'Read our thoughts and insights',
-        selectedPosts: [],
+        selectedPostIds: [],  // Changed: store only IDs
         showButton: true,
         buttonText: 'View All Posts',
         buttonBackgroundColor: '#14b8a6',
@@ -971,15 +973,15 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
   const filteredProjects = availableProjects.filter(project => 
     project.title.toLowerCase().includes(projectSearchQuery.toLowerCase())
   ).filter(project => 
-    !selectedComponent?.data?.selectedProjects?.some(selected => selected.id === project.id)
+    !selectedComponent?.data?.selectedProjectIds?.includes(project.id)
   );
 
-  // Add project to portfolio
+  // Add project to portfolio (store only ID)
   const addProjectToPortfolio = (project) => {
     if (!selectedComponent || selectedComponent.type !== 'portfolio') return;
     
-    const newProjects = [...(selectedComponent.data.selectedProjects || []), project];
-    updateComponent(selectedComponent.id, { selectedProjects: newProjects });
+    const newProjectIds = [...(selectedComponent.data.selectedProjectIds || []), project.id];
+    updateComponent(selectedComponent.id, { selectedProjectIds: newProjectIds });
     setProjectSearchQuery('');
     setShowProjectDropdown(false);
   };
@@ -1082,9 +1084,16 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
             <div className="container mx-auto px-4">
               <h1 className="text-5xl font-bold mb-6">{data.title}</h1>
               <p className="text-xl mb-8 opacity-90">{data.subtitle}</p>
-              <button className="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+              <a 
+                href={data.buttonLink || '#'}
+                className="inline-block px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-all"
+                style={{
+                  backgroundColor: data.buttonBackgroundColor || '#ffffff',
+                  color: data.buttonTextColor || '#667eea'
+                }}
+              >
                 {data.buttonText}
-              </button>
+              </a>
             </div>
           </div>
         );
@@ -1429,6 +1438,11 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
         );
       
       case 'portfolio':
+        // Fetch projects by IDs for preview
+        const selectedProjects = data.selectedProjectIds?.map(id => 
+          availableProjects.find(p => p.id === id)
+        ).filter(Boolean) || [];
+        
         return (
           <section 
             className="py-16"
@@ -1440,9 +1454,9 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
               
             {/* Portfolio Projects */}
             <div className="max-w-6xl mx-auto space-y-12">
-              {data.selectedProjects?.map((project, index) => (
+              {selectedProjects.map((project, index) => (
                 <ProjectCard 
-                  key={project.id || index}
+                  key={project.id}
                   project={project}
                   index={index}
                   showAnimation={false}
@@ -1450,6 +1464,11 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
                   showViewDetails={false}
                 />
               ))}
+              {selectedProjects.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No projects selected. Add projects from the properties panel.
+                </div>
+              )}
             </div>
             
             {/* See All Button */}
@@ -1473,6 +1492,11 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
         );
 
       case 'blog':
+        // Fetch posts by IDs for preview
+        const selectedBlogPosts = data.selectedPostIds?.map(id => 
+          availablePosts.find(p => p.id === id)
+        ).filter(Boolean) || [];
+        
         return (
           <section 
             className="py-16"
@@ -1483,16 +1507,16 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
               <p className="text-xl text-center mb-12 opacity-80">{data.subtitle}</p>
               
               {/* Blog Posts Grid */}
-              {data.selectedPosts && data.selectedPosts.length > 0 ? (
+              {selectedBlogPosts.length > 0 ? (
                 <div className={`grid gap-8 ${
                   data.columns === 1 ? 'grid-cols-1' :
                   data.columns === 2 ? 'grid-cols-1 md:grid-cols-2' :
                   data.columns === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
                   'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                 }`}>
-                  {data.selectedPosts.map((post, index) => (
+                  {selectedBlogPosts.map((post, index) => (
                     <BlogCard 
-                      key={post.id || index}
+                      key={post.id}
                       post={post}
                       index={index}
                       baseUrl=""
@@ -1505,7 +1529,7 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4 opacity-20">📝</div>
                   <h3 className="text-xl font-semibold mb-2">No blog posts selected</h3>
-                  <p className="text-gray-500">Add some blog posts to display here.</p>
+                  <p className="text-gray-500">Add some blog posts from the properties panel.</p>
                 </div>
               )}
               
@@ -1653,6 +1677,64 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
                 className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+            
+            {/* Button Link */}
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">Button Link</label>
+              <input
+                type="text"
+                value={data.buttonLink || ''}
+                onChange={(e) => updateComponent(component.id, { buttonLink: e.target.value })}
+                className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                placeholder="#"
+              />
+            </div>
+
+            {/* Button Colors */}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">Button Colors</label>
+              
+              {/* Button Background Color */}
+              <div>
+                <label className="block text-xs mb-1 text-gray-600 dark:text-gray-400">Background Color</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={data.buttonBackgroundColor || '#ffffff'}
+                    onChange={(e) => updateComponent(component.id, { buttonBackgroundColor: e.target.value })}
+                    className="w-12 h-8 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={data.buttonBackgroundColor || ''}
+                    onChange={(e) => updateComponent(component.id, { buttonBackgroundColor: e.target.value })}
+                    className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="#ffffff"
+                  />
+                </div>
+              </div>
+
+              {/* Button Text Color */}
+              <div>
+                <label className="block text-xs mb-1 text-gray-600 dark:text-gray-400">Text Color</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={data.buttonTextColor || '#667eea'}
+                    onChange={(e) => updateComponent(component.id, { buttonTextColor: e.target.value })}
+                    className="w-12 h-8 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={data.buttonTextColor || ''}
+                    onChange={(e) => updateComponent(component.id, { buttonTextColor: e.target.value })}
+                    className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="#667eea"
+                  />
+                </div>
+              </div>
+            </div>
+            
             {/* Background Color Picker */}
             <div>
               <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">Background</label>
@@ -3124,26 +3206,31 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
               
               {/* Selected Projects List */}
               <div className="space-y-2">
-                {data.selectedProjects?.map((project, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded flex items-center justify-center flex-shrink-0">
-                        <FiFolder className="text-primary-600 dark:text-primary-400" size={16} />
+                {data.selectedProjectIds?.map((projectId, index) => {
+                  const project = availableProjects.find(p => p.id === projectId);
+                  return (
+                    <div key={projectId} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                      <div className="flex items-center gap-2 flex-1">
+                        <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded flex items-center justify-center flex-shrink-0">
+                          <FiFolder className="text-primary-600 dark:text-primary-400" size={16} />
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {project?.title || `Project #${projectId}`}
+                        </span>
                       </div>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{project.title}</span>
+                      <button
+                        onClick={() => {
+                          const newProjectIds = data.selectedProjectIds.filter((id) => id !== projectId);
+                          updateComponent(component.id, { selectedProjectIds: newProjectIds });
+                        }}
+                        className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
+                      >
+                        <FiX size={14} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        const newProjects = data.selectedProjects.filter((_, i) => i !== index);
-                        updateComponent(component.id, { selectedProjects: newProjects });
-                      }}
-                      className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
-                    >
-                      <FiX size={14} />
-                    </button>
-                  </div>
-                ))}
-                {(!data.selectedProjects || data.selectedProjects.length === 0) && (
+                  );
+                })}
+                {(!data.selectedProjectIds || data.selectedProjectIds.length === 0) && (
                   <p className="text-sm text-gray-500 dark:text-gray-400">No projects selected. Search and add projects from your portfolio.</p>
                 )}
               </div>
@@ -3316,9 +3403,9 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
                         <div
                           key={post.id}
                           onClick={() => {
-                            if (!data.selectedPosts?.some(p => p.id === post.id)) {
-                              const newPosts = [...(data.selectedPosts || []), post];
-                              updateComponent(component.id, { selectedPosts: newPosts });
+                            if (!data.selectedPostIds?.includes(post.id)) {
+                              const newPostIds = [...(data.selectedPostIds || []), post.id];
+                              updateComponent(component.id, { selectedPostIds: newPostIds });
                             }
                             setPostSearchQuery('');
                             setShowPostDropdown(false);
@@ -3337,24 +3424,29 @@ const AdvancedLandingPageBuilder = ({ landingPage, onUpdate }) => {
               
               {/* Selected Posts */}
               <div className="mt-3 space-y-2">
-                {(data.selectedPosts || []).map((post, index) => (
-                  <div key={post.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded flex items-center justify-center flex-shrink-0">
-                      <FiBook className="text-primary-600 dark:text-primary-400" size={16} />
+                {(data.selectedPostIds || []).map((postId) => {
+                  const post = availablePosts.find(p => p.id === postId);
+                  return (
+                    <div key={postId} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                      <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded flex items-center justify-center flex-shrink-0">
+                        <FiBook className="text-primary-600 dark:text-primary-400" size={16} />
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {post?.title || `Post #${postId}`}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const newPostIds = data.selectedPostIds.filter((id) => id !== postId);
+                          updateComponent(component.id, { selectedPostIds: newPostIds });
+                        }}
+                        className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
+                      >
+                        <FiX size={14} />
+                      </button>
                     </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{post.title}</span>
-                    <button
-                      onClick={() => {
-                        const newPosts = data.selectedPosts.filter((_, i) => i !== index);
-                        updateComponent(component.id, { selectedPosts: newPosts });
-                      }}
-                      className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
-                    >
-                      <FiX size={14} />
-                    </button>
-                  </div>
-                ))}
-                {(!data.selectedPosts || data.selectedPosts.length === 0) && (
+                  );
+                })}
+                {(!data.selectedPostIds || data.selectedPostIds.length === 0) && (
                   <p className="text-sm text-gray-500 dark:text-gray-400">No posts selected. Search and add posts from your blog.</p>
                 )}
               </div>
