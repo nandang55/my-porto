@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FiMail, FiPhone, FiMapPin, FiGlobe, FiGithub, FiLinkedin, FiTwitter, FiInstagram, FiBriefcase, FiClock } from 'react-icons/fi';
+import { FiMail, FiPhone, FiMapPin, FiGlobe, FiGithub, FiLinkedin, FiTwitter, FiInstagram, FiBriefcase, FiClock, FiDownload } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 import TenantNavbar from '../components/TenantNavbar';
 import TechTag from '../components/TechTag';
@@ -80,6 +80,22 @@ const TenantAbout = () => {
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
                 {portfolio.tagline}
               </p>
+            )}
+
+            {/* Download CV Button */}
+            {portfolio.resume_url && (
+              <div className="flex justify-center mt-6">
+                <a
+                  href={portfolio.resume_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg"
+                >
+                  <FiDownload size={20} />
+                  <span>Download CV / Resume</span>
+                </a>
+              </div>
             )}
           </div>
 

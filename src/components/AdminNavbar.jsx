@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FiLogOut, FiUser, FiSettings } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiLayout } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import AdminThemeToggle from './AdminThemeToggle';
+import iconBagdjaPorto from '../assets/icon_bagdja_porto.png';
 
-const AdminNavbar = () => {
+const AdminNavbar = ({ hideMenu = false }) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
 
@@ -21,17 +22,20 @@ const AdminNavbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <Link to="/admin" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <FiSettings className="text-white" size={18} />
-              </div>
+            <Link to="/admin" className="flex items-center space-x-3">
+              <img
+                src={iconBagdjaPorto}
+                alt="BagdjaPorto"
+                className="w-8 h-8 rounded-lg"
+              />
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                Admin Panel
+                BagdjaPorto
               </span>
             </Link>
           </div>
 
           {/* Navigation Links */}
+          {!hideMenu && (
           <div className="hidden md:flex items-center space-x-8">
             <Link
               to="/admin"
@@ -42,6 +46,16 @@ const AdminNavbar = () => {
               }`}
             >
               Dashboard
+            </Link>
+            <Link
+              to="/admin/landing-page"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive('/admin/landing-page')
+                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                  : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              Landing Page
             </Link>
             <Link
               to="/admin/portfolio"
@@ -84,6 +98,7 @@ const AdminNavbar = () => {
               Settings
             </Link>
           </div>
+          )}
 
           {/* Right Side - User Menu & Theme Toggle */}
           <div className="flex items-center space-x-4">

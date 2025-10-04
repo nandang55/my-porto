@@ -16,12 +16,16 @@ import TenantBlogDetail from './pages/TenantBlogDetail';
 import TenantProjectDetail from './pages/TenantProjectDetail';
 import TenantAbout from './pages/TenantAbout';
 import TenantContact from './pages/TenantContact';
+import LandingPageRenderer from './components/LandingPageRenderer';
 
 // Admin Pages
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
+import AdminLandingPage from './pages/admin/AdminLandingPage';
 import AdminPortfolio from './pages/admin/AdminPortfolio';
+import ProjectForm from './pages/admin/ProjectForm';
 import AdminBlog from './pages/admin/AdminBlog';
+import BlogForm from './pages/admin/BlogForm';
 import AdminMessages from './pages/admin/AdminMessages';
 import Settings from './pages/admin/Settings';
 
@@ -35,6 +39,7 @@ function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Layout><Home /></Layout>} />
+                <Route path="/landing" element={<LandingPageRenderer />} />
                 <Route path="/about" element={<Layout><About /></Layout>} />
                 <Route path="/contact" element={<Layout><Contact /></Layout>} />
 
@@ -50,10 +55,50 @@ function App() {
               }
             />
             <Route
+              path="/admin/landing-page"
+              element={
+                <ProtectedRoute>
+                  <AdminLandingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/portfolio/new"
+              element={
+                <ProtectedRoute>
+                  <ProjectForm key="new" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/portfolio/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <ProjectForm key="edit" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/portfolio"
               element={
                 <ProtectedRoute>
-                  <AdminPortfolio />
+                  <AdminPortfolio key="list" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/blog/new"
+              element={
+                <ProtectedRoute>
+                  <BlogForm key="new" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/blog/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <BlogForm key="edit" />
                 </ProtectedRoute>
               }
             />
@@ -61,7 +106,7 @@ function App() {
               path="/admin/blog"
               element={
                 <ProtectedRoute>
-                  <AdminBlog />
+                  <AdminBlog key="list" />
                 </ProtectedRoute>
               }
             />
@@ -84,6 +129,7 @@ function App() {
 
                 {/* Tenant Routes */}
                 <Route path="/:slug" element={<PublicPortfolio />} />
+                <Route path="/:slug/projects" element={<PublicPortfolio />} />
                 <Route path="/:slug/project/:projectSlug" element={<TenantProjectDetail />} />
                 <Route path="/:slug/blog" element={<TenantBlog />} />
                 <Route path="/:slug/blog/:postSlug" element={<TenantBlogDetail />} />

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiX, FiChevronLeft, FiChevronRight, FiPlay } from 'react-icons/fi';
+import { FiX, FiChevronLeft, FiChevronRight, FiPlay, FiFile, FiFileText, FiArchive, FiDownload } from 'react-icons/fi';
 
 const MediaGallery = ({ media = [], title = '' }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -8,6 +8,23 @@ const MediaGallery = ({ media = [], title = '' }) => {
   if (!media || media.length === 0) return null;
 
   const currentMedia = media[selectedIndex];
+
+  // Get appropriate icon for document type
+  const getDocumentIcon = (url, size = 48) => {
+    if (!url) return <FiFile size={size} />;
+    const ext = url.toLowerCase().split('.').pop().split('?')[0];
+    if (ext === 'pdf') return <FiFileText size={size} />;
+    if (['doc', 'docx'].includes(ext)) return <FiFile size={size} />;
+    if (['ppt', 'pptx'].includes(ext)) return <FiFile size={size} />;
+    if (['zip', 'rar'].includes(ext)) return <FiArchive size={size} />;
+    return <FiFile size={size} />;
+  };
+
+  // Get filename from URL
+  const getFileName = (url) => {
+    if (!url) return 'Document';
+    return url.split('/').pop().split('?')[0];
+  };
 
   const openLightbox = (index) => {
     setSelectedIndex(index);
@@ -37,7 +54,7 @@ const MediaGallery = ({ media = [], title = '' }) => {
       {/* Main Featured Media */}
       <div 
         className="relative overflow-hidden rounded-lg mb-4 h-64 cursor-pointer group"
-        onClick={() => openLightbox(0)}
+        onClick={() => currentMedia.type === 'document' ? null : openLightbox(0)}
       >
         {currentMedia.type === 'image' ? (
           <img
@@ -45,7 +62,7 @@ const MediaGallery = ({ media = [], title = '' }) => {
             alt={title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
-        ) : (
+        ) : currentMedia.type === 'video' ? (
           <div className="relative w-full h-full">
             <video
               src={currentMedia.url}
@@ -59,10 +76,32 @@ const MediaGallery = ({ media = [], title = '' }) => {
               </div>
             </div>
           </div>
+        ) : (
+          <div className="relative w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 flex flex-col items-center justify-center p-6">
+            <div className="text-blue-600 dark:text-blue-300 mb-4">
+              {getDocumentIcon(currentMedia.url, 64)}
+            </div>
+            <div className="text-sm text-blue-800 dark:text-blue-200 text-center mb-4 font-medium max-w-full break-all px-4">
+              {getFileName(currentMedia.url)}
+            </div>
+            <a
+              href={currentMedia.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all hover:scale-105 shadow-lg"
+            >
+              <FiDownload size={20} />
+              Download File
+            </a>
+          </div>
         )}
         
         {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
+        {currentMedia.type !== 'document' && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
+        )}
       </div>
 
       {/* Thumbnail Grid (if multiple media) */}
@@ -78,7 +117,9 @@ const MediaGallery = ({ media = [], title = '' }) => {
               }`}
               onClick={() => {
                 setSelectedIndex(index);
-                openLightbox(index);
+                if (item.type !== 'document') {
+                  openLightbox(index);
+                }
               }}
             >
               {item.type === 'image' ? (
@@ -87,7 +128,7 @@ const MediaGallery = ({ media = [], title = '' }) => {
                   alt={`${title} ${index + 1}`}
                   className="w-full h-full object-cover"
                 />
-              ) : (
+              ) : item.type === 'video' ? (
                 <div className="relative w-full h-full">
                   {item.thumbnail && item.thumbnail.startsWith('data:') ? (
                     <img
@@ -105,6 +146,12 @@ const MediaGallery = ({ media = [], title = '' }) => {
                   )}
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <FiPlay className="text-white" size={20} />
+                  </div>
+                </div>
+              ) : (
+                <div className="relative w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center">
+                  <div className="text-blue-600 dark:text-blue-300">
+                    {getDocumentIcon(item.url, 24)}
                   </div>
                 </div>
               )}
@@ -164,13 +211,32 @@ const MediaGallery = ({ media = [], title = '' }) => {
                 alt={`${title} ${selectedIndex + 1}`}
                 className="max-w-full max-h-full object-contain"
               />
-            ) : (
+            ) : currentMedia.type === 'video' ? (
               <video
                 src={currentMedia.url}
                 controls
                 autoPlay
                 className="max-w-full max-h-full"
               />
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 max-w-2xl mx-auto flex flex-col items-center">
+                <div className="text-blue-600 dark:text-blue-400 mb-6">
+                  {getDocumentIcon(currentMedia.url, 96)}
+                </div>
+                <div className="text-xl font-semibold text-gray-900 dark:text-white text-center mb-8 break-all px-4">
+                  {getFileName(currentMedia.url)}
+                </div>
+                <a
+                  href={currentMedia.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all hover:scale-105 shadow-xl text-lg"
+                >
+                  <FiDownload size={24} />
+                  Download File
+                </a>
+              </div>
             )}
           </div>
 

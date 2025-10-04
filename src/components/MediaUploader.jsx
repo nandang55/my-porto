@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { FiUpload, FiX, FiImage, FiVideo, FiStar } from 'react-icons/fi';
+import { FiUpload, FiX, FiImage, FiVideo, FiStar, FiFile, FiFileText, FiArchive, FiDownload } from 'react-icons/fi';
 import { uploadFile, deleteFile, validateFile, getFileType, createVideoThumbnail } from '../utils/storageHelper';
 import { useAlert } from '../context/AlertContext';
 
@@ -8,6 +8,29 @@ const MediaUploader = ({ media = [], onChange, maxFiles = 10 }) => {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
   const alert = useAlert();
+
+  // Get appropriate icon for file type
+  const getFileIcon = (fileType, url, size = 12) => {
+    if (fileType === 'image') return <FiImage size={size} />;
+    if (fileType === 'video') return <FiVideo size={size} />;
+    
+    // For documents, check extension from URL
+    if (fileType === 'document' && url) {
+      const ext = url.toLowerCase().split('.').pop().split('?')[0];
+      if (ext === 'pdf') return <FiFileText size={size} />;
+      if (['doc', 'docx'].includes(ext)) return <FiFile size={size} />;
+      if (['ppt', 'pptx'].includes(ext)) return <FiFile size={size} />; // Using FiFile for PPT
+      if (['zip', 'rar'].includes(ext)) return <FiArchive size={size} />;
+    }
+    
+    return <FiFile size={size} />; // Default document icon
+  };
+
+  // Get filename from URL
+  const getFileName = (url) => {
+    if (!url) return 'Document';
+    return url.split('/').pop().split('?')[0];
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -158,7 +181,7 @@ const MediaUploader = ({ media = [], onChange, maxFiles = 10 }) => {
           ref={fileInputRef}
           type="file"
           multiple
-          accept="image/*,video/*"
+          accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.txt"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -173,7 +196,7 @@ const MediaUploader = ({ media = [], onChange, maxFiles = 10 }) => {
               {dragActive ? 'Drop files here' : 'Drag & drop files here'}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-              or click to browse (JPG, PNG, GIF, WebP, MP4, MOV, WebM - max 50MB)
+              or click to browse (Images, Videos, PDF, DOCX, PPT, ZIP - max 50MB)
             </p>
             <button
               type="button"
@@ -206,7 +229,7 @@ const MediaUploader = ({ media = [], onChange, maxFiles = 10 }) => {
                   alt={`Upload ${index + 1}`}
                   className="w-full h-full object-cover"
                 />
-              ) : (
+              ) : item.type === 'video' ? (
                 <div className="relative w-full h-full">
                   {item.thumbnail && item.thumbnail.startsWith('data:') ? (
                     <img
@@ -224,6 +247,16 @@ const MediaUploader = ({ media = [], onChange, maxFiles = 10 }) => {
                   )}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <FiVideo className="text-white" size={32} />
+                  </div>
+                </div>
+              ) : (
+                // Document preview
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800">
+                  <div className="text-blue-600 dark:text-blue-300 mb-2">
+                    {getFileIcon(item.type, item.url, 32)}
+                  </div>
+                  <div className="text-xs text-blue-800 dark:text-blue-200 text-center px-2 break-all">
+                    {getFileName(item.url)}
                   </div>
                 </div>
               )}
@@ -244,14 +277,27 @@ const MediaUploader = ({ media = [], onChange, maxFiles = 10 }) => {
 
               {/* Type Badge */}
               <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-                {item.type === 'image' ? <FiImage size={12} /> : <FiVideo size={12} />}
+                {getFileIcon(item.type, item.url)}
                 {item.type}
               </div>
 
               {/* Hover Actions */}
               {!item.uploading && (
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                  {!item.featured && (
+                  {/* Download Button - Available for all files */}
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors"
+                    title="Download"
+                  >
+                    <FiDownload size={16} />
+                  </a>
+                  
+                  {/* Featured Button - Only for images and videos */}
+                  {item.type !== 'document' && !item.featured && (
                     <button
                       type="button"
                       onClick={() => handleSetFeatured(index)}
@@ -261,6 +307,8 @@ const MediaUploader = ({ media = [], onChange, maxFiles = 10 }) => {
                       <FiStar size={16} />
                     </button>
                   )}
+                  
+                  {/* Remove Button - Available for all files */}
                   <button
                     type="button"
                     onClick={() => handleRemove(index)}

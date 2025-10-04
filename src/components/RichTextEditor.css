@@ -4,8 +4,8 @@
 }
 
 .rich-text-editor-wrapper .ck-editor__editable {
-  min-height: 250px;
-  max-height: 600px;
+  min-height: 500px;
+  max-height: 800px;
   overflow-y: auto;
 }
 

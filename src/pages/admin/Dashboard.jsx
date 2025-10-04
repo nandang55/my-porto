@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FiFileText, FiBriefcase, FiMail, FiSettings, FiEye, FiTrendingUp, FiUsers, FiCalendar, FiActivity } from 'react-icons/fi';
+import { FiFileText, FiBriefcase, FiMail, FiSettings, FiEye, FiTrendingUp, FiUsers, FiCalendar, FiActivity, FiLayout } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -223,6 +223,13 @@ const Dashboard = () => {
   };
 
   const menuItems = [
+    {
+      title: 'Landing Page Builder',
+      description: 'Create beautiful landing pages with drag & drop',
+      icon: FiLayout,
+      link: '/admin/landing-page',
+      color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+    },
     {
       title: 'Manage Portfolio',
       description: 'Add, edit, or delete portfolio projects',

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX, FiHome } from 'react-icons/fi';
 import { useState } from 'react';
 import DarkModeToggle from './DarkModeToggle';
 
@@ -10,7 +10,8 @@ const TenantNavbar = ({ portfolio }) => {
   if (!portfolio) return null;
 
   const navLinks = [
-    { name: 'Projects', path: `/${portfolio.slug}` },
+    { name: 'Home', path: `/${portfolio.slug}`, icon: FiHome },
+    { name: 'Projects', path: `/${portfolio.slug}/projects` },
     { name: 'Blog', path: `/${portfolio.slug}/blog` },
     { name: 'About', path: `/${portfolio.slug}/about` },
     { name: 'Contact', path: `/${portfolio.slug}/contact` },
@@ -51,22 +52,26 @@ const TenantNavbar = ({ portfolio }) => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`font-medium transition-colors duration-200 ${
-                  isActive(link.path)
-                    ? ''
-                    : 'text-gray-700 dark:text-gray-300'
-                }`}
-                style={isActive(link.path) ? { color: portfolio.theme_color || '#0284c7' } : {}}
-                onMouseEnter={(e) => !isActive(link.path) && (e.currentTarget.style.color = portfolio.theme_color || '#0284c7')}
-                onMouseLeave={(e) => !isActive(link.path) && (e.currentTarget.style.color = '')}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const IconComponent = link.icon;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`font-medium transition-colors duration-200 flex items-center gap-2 ${
+                    isActive(link.path)
+                      ? ''
+                      : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                  style={isActive(link.path) ? { color: portfolio.theme_color || '#0284c7' } : {}}
+                  onMouseEnter={(e) => !isActive(link.path) && (e.currentTarget.style.color = portfolio.theme_color || '#0284c7')}
+                  onMouseLeave={(e) => !isActive(link.path) && (e.currentTarget.style.color = '')}
+                >
+                  {IconComponent && <IconComponent size={16} />}
+                  {link.name}
+                </Link>
+              );
+            })}
             <DarkModeToggle />
           </div>
 
@@ -85,23 +90,27 @@ const TenantNavbar = ({ portfolio }) => {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden pb-4 border-t border-gray-200 dark:border-gray-700 mt-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setIsOpen(false)}
-                className={`block py-3 font-medium transition-colors duration-200 ${
-                  isActive(link.path)
-                    ? ''
-                    : 'text-gray-700 dark:text-gray-300'
-                }`}
-                style={isActive(link.path) ? { color: portfolio.theme_color || '#0284c7' } : {}}
-                onMouseEnter={(e) => !isActive(link.path) && (e.currentTarget.style.color = portfolio.theme_color || '#0284c7')}
-                onMouseLeave={(e) => !isActive(link.path) && (e.currentTarget.style.color = '')}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const IconComponent = link.icon;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`block py-3 font-medium transition-colors duration-200 flex items-center gap-2 ${
+                    isActive(link.path)
+                      ? ''
+                      : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                  style={isActive(link.path) ? { color: portfolio.theme_color || '#0284c7' } : {}}
+                  onMouseEnter={(e) => !isActive(link.path) && (e.currentTarget.style.color = portfolio.theme_color || '#0284c7')}
+                  onMouseLeave={(e) => !isActive(link.path) && (e.currentTarget.style.color = '')}
+                >
+                  {IconComponent && <IconComponent size={16} />}
+                  {link.name}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

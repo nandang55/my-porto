@@ -10,8 +10,27 @@ const BUCKET_NAME = 'project-media'; // Supabase storage bucket name
  */
 export const uploadFile = async (file, folder = 'projects') => {
   try {
+    // Generate unique ID
+    const id = Math.random().toString(36).substring(2, 10);
+    
+    // Get original filename without extension and sanitize it
+    const fileNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+    const sanitizedFileName = fileNameWithoutExt
+      .toLowerCase()
+      .replace(/_/g, '-')           // Replace underscores with dashes
+      .replace(/\s+/g, '-')         // Replace spaces with dashes
+      .replace(/[^a-z0-9-]/g, '')   // Remove special characters
+      .replace(/-+/g, '-')          // Replace multiple dashes with single dash
+      .substring(0, 50);            // Limit length to 50 chars
+    
+    // Get timestamp
+    const timestamp = Date.now();
+    
+    // Get file extension
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+    
+    // Create filename: {id}_{sanitized-filename}_{timestamp}.ext
+    const fileName = `${id}_${sanitizedFileName}_${timestamp}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
     // Upload file to Supabase Storage
@@ -63,20 +82,24 @@ export const deleteFile = async (filePath) => {
 /**
  * Get file type from file object or URL
  * @param {File|string} file - File object or URL
- * @returns {string} - 'image' or 'video'
+ * @returns {string} - 'image', 'video', or 'document'
  */
 export const getFileType = (file) => {
   if (file instanceof File) {
-    return file.type.startsWith('image/') ? 'image' : 'video';
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    return 'document';
   }
   
   // If it's a URL/string, check extension
   const ext = file.toLowerCase().split('.').pop().split('?')[0];
   const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
   const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'm4v'];
+  const documentExts = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'zip', 'rar', 'txt'];
   
   if (imageExts.includes(ext)) return 'image';
   if (videoExts.includes(ext)) return 'video';
+  if (documentExts.includes(ext)) return 'document';
   return 'unknown';
 };
 
@@ -88,21 +111,32 @@ export const getFileType = (file) => {
 export const validateFile = (file) => {
   const maxSize = 50 * 1024 * 1024; // 50MB
   const allowedTypes = [
+    // Images
     'image/jpeg',
     'image/jpg', 
     'image/png', 
     'image/gif', 
     'image/webp',
+    // Videos
     'video/mp4',
     'video/webm',
     'video/ogg',
     'video/quicktime', // .mov files
+    // Documents
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/msword', // .doc
+    'application/vnd.ms-powerpoint', // .ppt
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+    'application/zip',
+    'application/x-zip-compressed',
+    'text/plain', // .txt
   ];
 
   if (!allowedTypes.includes(file.type)) {
     return {
       valid: false,
-      error: 'File type not supported. Please upload images (JPG, PNG, GIF, WebP) or videos (MP4, WebM, OGG, MOV).',
+      error: 'File type not supported. Please upload images (JPG, PNG, GIF, WebP), videos (MP4, WebM, OGG, MOV), or documents (PDF, DOCX, PPT, ZIP).',
     };
   }
 

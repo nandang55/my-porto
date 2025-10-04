@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FiArrowRight, 
@@ -24,175 +25,137 @@ const Home = () => {
       color: 'from-blue-500 to-blue-600'
     },
     {
-      icon: <FiImage className="text-3xl" />,
-      title: 'Media Management',
-      description: 'Upload multiple images and videos with drag-and-drop. Automatic thumbnail generation and optimization.',
+      icon: <FiSettings className="text-3xl" />,
+      title: 'Easy Customization',
+      description: 'Customize colors, fonts, layouts, and content with our intuitive drag-and-drop editor.',
       color: 'from-purple-500 to-purple-600'
     },
     {
       icon: <FiGlobe className="text-3xl" />,
-      title: 'Custom Domain',
-      description: 'Use your own domain or get a free subdomain. Full SSL and CDN included for blazing fast performance.',
+      title: 'Custom Domains',
+      description: 'Use your own domain name to make your portfolio truly yours with professional branding.',
       color: 'from-green-500 to-green-600'
-    },
-    {
-      icon: <FiSettings className="text-3xl" />,
-      title: 'Easy Customization',
-      description: 'Customize colors, fonts, and layout without coding. Real-time preview of all your changes.',
-      color: 'from-orange-500 to-orange-600'
     },
     {
       icon: <FiZap className="text-3xl" />,
       title: 'Lightning Fast',
-      description: 'Built with modern tech stack for instant page loads. Optimized for performance and SEO.',
+      description: 'Built with modern technology for blazing fast loading times and optimal performance.',
       color: 'from-yellow-500 to-yellow-600'
     },
     {
       icon: <FiShield className="text-3xl" />,
       title: 'Secure & Reliable',
-      description: 'Enterprise-grade security with automatic backups. Your data is always safe and accessible.',
+      description: 'Your data is protected with enterprise-grade security and 99.9% uptime guarantee.',
       color: 'from-red-500 to-red-600'
+    },
+    {
+      icon: <FiSmartphone className="text-3xl" />,
+      title: 'Mobile Responsive',
+      description: 'Perfect on all devices - desktop, tablet, and mobile with responsive design.',
+      color: 'from-indigo-500 to-indigo-600'
     }
   ];
 
-  const steps = [
-    {
-      number: '01',
-      title: 'Create Account',
-      description: 'Sign up in seconds with your email. No credit card required to start.',
-    },
-    {
-      number: '02',
-      title: 'Build Portfolio',
-      description: 'Add your projects, skills, and experience with our intuitive editor.',
-    },
-    {
-      number: '03',
-      title: 'Customize Design',
-      description: 'Choose a template and customize it to match your personal brand.',
-    },
-    {
-      number: '04',
-      title: 'Go Live',
-      description: 'Publish your portfolio and share it with the world instantly.',
-    }
-  ];
-
-  const benefits = [
-    'Multi-user support with isolated data',
-    'WYSIWYG editor for rich content',
-    'Advanced tech stack tagging system',
-    'Global search functionality',
-    'Dark mode support',
-    'Mobile responsive design',
-    'SEO optimized pages',
-    'Analytics dashboard',
-    'Contact form with email notifications',
-    'Blog integration',
-    'Social media links',
-    'Custom metadata for projects'
+  const stats = [
+    { label: 'Active Users', value: '10,000+', icon: <FiUsers className="text-2xl" /> },
+    { label: 'Portfolios Created', value: '50,000+', icon: <FiTrendingUp className="text-2xl" /> },
+    { label: 'Happy Customers', value: '98%', icon: <FiStar className="text-2xl" /> }
   ];
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 opacity-10 dark:opacity-20"></div>
-        
-        <div className="container mx-auto px-4 py-20 md:py-32 relative">
-          <div className="max-w-5xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full mb-8 animate-fadeInUp">
-              <FiStar className="text-yellow-500" />
-              <span className="font-semibold">Professional Portfolio Platform</span>
+      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white py-20 lg:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-20"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="mb-8">
+              <img 
+                src={logoBagdjaPorto} 
+                alt="BagdjaPorto" 
+                className="h-16 mx-auto mb-6"
+              />
             </div>
-
-            {/* Main headline */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
-              Build Your
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">
-                Professional Portfolio
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+              Create Your
+              <span className="block bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                Perfect Portfolio
               </span>
-              in Minutes
             </h1>
-
-            {/* Subheadline */}
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-10 max-w-3xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-              Showcase your work, attract clients, and grow your career with a stunning portfolio website.
-              No coding required.
+            <p className="text-xl lg:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto leading-relaxed">
+              Build stunning, professional portfolios in minutes. No coding required. 
+              Showcase your work with beautiful templates and custom domains.
             </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link 
+                to="/admin/register" 
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2"
+              >
+                Get Started Free
+                <FiArrowRight className="text-xl" />
+              </Link>
               <Link 
                 to="/admin/login" 
-                className="btn-primary flex items-center gap-2 justify-center text-lg px-8 py-4 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 flex items-center gap-2"
               >
-                Get Started Free <FiArrowRight />
+                Sign In
               </Link>
-              <a 
-                href="#features" 
-                className="btn-secondary text-lg px-8 py-4 hover:shadow-lg transform hover:-translate-y-1 transition-all"
-              >
-                Explore Features
-              </a>
-            </div>
-
-            {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center gap-8 text-gray-600 dark:text-gray-400 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center gap-2">
-                <FiCheck className="text-green-500" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiCheck className="text-green-500" />
-                <span>Free forever plan</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiCheck className="text-green-500" />
-                <span>Cancel anytime</span>
-              </div>
             </div>
           </div>
         </div>
+        
+        {/* Decorative Elements */}
+        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-32 h-32 bg-purple-400 rounded-full opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-blue-400 rounded-full opacity-20 animate-pulse delay-500"></div>
+      </section>
 
-        {/* Wave divider */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" className="w-full h-auto">
-            <path 
-              fill="currentColor" 
-              fillOpacity="1" 
-              d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,58.7C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
-              className="text-gray-50 dark:text-gray-800/50"
-            ></path>
-          </svg>
+      {/* Stats Section */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center group">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full text-white mb-4 group-hover:scale-110 transition-transform duration-300">
+                  {stat.icon}
+                </div>
+                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{stat.value}</div>
+                <div className="text-gray-600 dark:text-gray-400 font-medium">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50 dark:bg-gray-800/50">
+      <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Everything You Need
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Everything You Need to
+              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Build Your Portfolio
+              </span>
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              Powerful features to help you create a portfolio that stands out
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              From beautiful templates to custom domains, we provide all the tools you need 
+              to create a professional portfolio that stands out.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {features.map((feature, index) => (
-              <div
+              <div 
                 key={index}
-                className="group card hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700 group"
+                style={{ animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both` }}
               >
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${feature.color} text-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  {feature.title}
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                   {feature.description}
                 </p>
@@ -202,171 +165,73 @@ const Home = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              Four simple steps to launch your professional portfolio
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {steps.map((step, index) => (
-              <div key={index} className="text-center relative">
-                {/* Connection line */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-12 left-1/2 w-full h-0.5 bg-gradient-to-r from-primary-500 to-primary-300 dark:from-primary-600 dark:to-primary-800 -z-10"></div>
-                )}
-                
-                <div className="relative inline-block mb-4">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white flex items-center justify-center text-3xl font-bold shadow-xl">
-                    {step.number}
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Grid */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-800/50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                Packed with Features
-              </h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400">
-                All the tools you need to create an amazing portfolio
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {benefits.map((benefit, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg hover:shadow-md transition-shadow"
-                >
-                  <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0">
-                    <FiCheck className="text-green-600 dark:text-green-400" />
-                  </div>
-                  <span className="text-gray-700 dark:text-gray-300">{benefit}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto text-center">
-            <div className="p-8">
-              <div className="text-5xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                <FiUsers className="inline mb-2" />
-              </div>
-              <div className="text-4xl font-bold mb-2">1000+</div>
-              <div className="text-gray-600 dark:text-gray-400">Active Users</div>
-            </div>
-            <div className="p-8">
-              <div className="text-5xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                <FiLayout className="inline mb-2" />
-              </div>
-              <div className="text-4xl font-bold mb-2">5000+</div>
-              <div className="text-gray-600 dark:text-gray-400">Portfolios Created</div>
-            </div>
-            <div className="p-8">
-              <div className="text-5xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                <FiTrendingUp className="inline mb-2" />
-              </div>
-              <div className="text-4xl font-bold mb-2">99.9%</div>
-              <div className="text-gray-600 dark:text-gray-400">Uptime</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white">
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready to Build Your Portfolio?
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Join thousands of professionals who trust us to showcase their work
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                to="/admin/login" 
-                className="bg-white text-primary-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold text-lg flex items-center gap-2 justify-center shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all"
-              >
-                Start Building Now <FiArrowRight />
-              </Link>
-              <Link 
-                to="/contact" 
-                className="bg-primary-700 hover:bg-primary-800 px-8 py-4 rounded-lg font-semibold text-lg border-2 border-white/30 hover:border-white/50 transition-all"
-              >
-                Contact Sales
-              </Link>
-            </div>
-          </div>
+          <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+            Ready to Showcase Your Work?
+          </h2>
+          <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
+            Join thousands of professionals who trust BagdjaPorto to showcase their work 
+            and grow their careers.
+          </p>
+          <Link 
+            to="/admin/register" 
+            className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl inline-flex items-center gap-2"
+          >
+            Start Building Now
+            <FiArrowRight className="text-xl" />
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
+      <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <img 
-                  src={logoBagdjaPorto} 
-                  alt="BagdjaPorto" 
-                  className="h-8 w-auto"
-                />
-              </div>
-              <p className="text-sm">
-                Create stunning professional portfolios in minutes. No coding required.
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="col-span-1 md:col-span-2">
+              <img 
+                src={logoBagdjaPorto} 
+                alt="BagdjaPorto" 
+                className="h-12 mb-4"
+              />
+              <p className="text-gray-400 mb-4 max-w-md">
+                The easiest way to create beautiful, professional portfolios. 
+                No coding required, just drag, drop, and customize.
               </p>
+              <div className="flex space-x-4">
+                <Link to="/about" className="text-gray-400 hover:text-white transition-colors">
+                  About
+                </Link>
+                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </div>
             </div>
+            
             <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
-                <li><Link to="/admin/login" className="hover:text-white transition-colors">Get Started</Link></li>
+              <h3 className="text-lg font-semibold mb-4">Product</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/admin/register" className="hover:text-white transition-colors">Get Started</Link></li>
+                <li><Link to="/admin/login" className="hover:text-white transition-colors">Sign In</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Templates</a></li>
               </ul>
             </div>
+            
             <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link to="/admin/login" className="hover:text-white transition-colors">Login</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
+              <h3 className="text-lg font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            <p>© {new Date().getFullYear()} BagdjaPorto. All rights reserved.</p>
+          
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 BagdjaPorto. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -375,4 +240,3 @@ const Home = () => {
 };
 
 export default Home;
-

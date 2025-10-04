@@ -91,7 +91,7 @@ const TechStackInput = ({ value = [], onChange }) => {
     } else {
       setFilteredSuggestions([]);
     }
-  }, [inputValue, value]);
+  }, [inputValue, JSON.stringify(value)]);
 
   const addTech = (techName) => {
     if (techName && !value.includes(techName)) {

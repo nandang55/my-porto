@@ -1,11 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { FiPlus, FiEdit, FiTrash2, FiX, FiEye } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiPlus, FiEdit, FiTrash2, FiEye } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
-import MediaUploader from '../../components/MediaUploader';
-import TechStackInput from '../../components/TechStackInput';
 import TechTag from '../../components/TechTag';
-import RichTextEditor from '../../components/RichTextEditor';
 import SearchBar from '../../components/SearchBar';
 import BackButton from '../../components/BackButton';
 import AdminNavbar from '../../components/AdminNavbar';
@@ -14,15 +11,10 @@ import { useAuth } from '../../context/AuthContext';
 import { getTextPreview, stripHtml } from '../../utils/textHelpers';
 
 const AdminPortfolio = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingProject, setEditingProject] = useState(null);
-  const [media, setMedia] = useState([]);
-  const [techStack, setTechStack] = useState([]);
-  const [description, setDescription] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const alert = useAlert();
   const { user } = useAuth();
 
@@ -66,118 +58,6 @@ const AdminPortfolio = () => {
     }
   };
 
-  const onSubmit = async (data) => {
-    try {
-      // Validate required fields
-      if (!data.title || !data.slug) {
-        alert.error('Title and Slug are required fields.');
-        return;
-      }
-
-      // Get featured media URL (for backward compatibility with old 'image' column)
-      const featuredMedia = media.find(m => m.featured);
-      const featuredUrl = featuredMedia?.url || media[0]?.url || null;
-
-      // Generate slug from title if not provided
-      let projectSlug = data.slug || '';
-      if (!projectSlug && data.title) {
-        projectSlug = data.title.toLowerCase()
-          .replace(/[^a-z0-9\s]/g, '')
-          .replace(/\s+/g, '-')
-          .trim();
-      }
-
-      const projectData = {
-        title: data.title,
-        slug: projectSlug.toLowerCase().replace(/[^a-z0-9-]/g, ''),
-        excerpt: data.excerpt || '',
-        description: description, // Use description from state (rich text HTML)
-        image: featuredUrl, // Keep for backward compatibility
-        demo_url: data.demo_url,
-        github_url: data.github_url,
-        tech_stack: techStack, // Use techStack from state
-        media: media.map(m => ({
-          type: m.type,
-          url: m.url,
-          thumbnail: m.thumbnail,
-          featured: m.featured || false,
-        })),
-        featured_media: featuredUrl,
-        order: parseInt(data.order) || 0,
-        published: data.published === true || data.published === 'true',
-        user_id: user.id, // Link to current user
-      };
-
-      if (editingProject) {
-        const { error } = await supabase
-          .from('projects')
-          .update(projectData)
-          .eq('id', editingProject.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('projects')
-          .insert([projectData]);
-
-        if (error) throw error;
-      }
-
-      await fetchProjects();
-      setShowForm(false);
-      setEditingProject(null);
-      setMedia([]);
-      setTechStack([]);
-      setDescription('');
-      reset();
-      
-      // Show success message
-      if (editingProject) {
-        alert.success('Project updated successfully!');
-      } else {
-        alert.success('Project created successfully!');
-      }
-    } catch (error) {
-      console.error('Error saving project:', error);
-      alert.error('Failed to save project. Make sure Supabase is properly configured.');
-    }
-  };
-
-  const handleEdit = (project) => {
-    setEditingProject(project);
-    reset({
-      title: project.title,
-      slug: project.slug || '',
-      excerpt: project.excerpt || '',
-      demo_url: project.demo_url,
-      github_url: project.github_url,
-      order: project.order || 0,
-      published: project.published !== false, // Default to true if undefined
-    });
-    
-    // Load existing description (rich text HTML)
-    setDescription(project.description || '');
-    
-    // Load existing media
-    if (project.media && Array.isArray(project.media) && project.media.length > 0) {
-      setMedia(project.media);
-    } else if (project.image) {
-      // Fallback for old projects with single image
-      setMedia([{
-        type: 'image',
-        url: project.image,
-        thumbnail: project.image,
-        featured: true,
-      }]);
-    } else {
-      setMedia([]);
-    }
-    
-    // Load existing tech stack
-    setTechStack(project.tech_stack || []);
-    
-    setShowForm(true);
-  };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
@@ -197,14 +77,6 @@ const AdminPortfolio = () => {
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingProject(null);
-    setMedia([]);
-    setTechStack([]);
-    setDescription('');
-    reset();
-  };
 
   // Filter projects based on search query (includes drafts)
   const filteredProjects = useMemo(() => {
@@ -249,7 +121,7 @@ const AdminPortfolio = () => {
             <h1 className="text-3xl font-bold">Manage Portfolio</h1>
           </div>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => navigate('/admin/portfolio/new')}
             className="btn-primary flex items-center gap-2"
           >
             <FiPlus /> Add Project
@@ -264,178 +136,6 @@ const AdminPortfolio = () => {
             resultCount={searchQuery ? filteredProjects.length : null}
           />
         </div>
-
-        {/* Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">
-                  {editingProject ? 'Edit Project' : 'Add New Project'}
-                </h2>
-                <button onClick={handleCancel} className="text-gray-500 hover:text-gray-700">
-                  <FiX size={24} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div>
-                  <label className="block font-medium mb-2">Title</label>
-                  <input
-                    {...register('title', { required: 'Title is required' })}
-                    className="input-field"
-                    placeholder="Project title"
-                  />
-                  {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2">URL Slug</label>
-                  <input
-                    {...register('slug', { required: 'Slug is required' })}
-                    className="input-field"
-                    placeholder="project-url-slug"
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setValue('slug', value);
-                    }}
-                  />
-                  {errors.slug && <p className="text-red-500 text-sm mt-1">{errors.slug.message}</p>}
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    URL-friendly identifier (lowercase, no spaces, use hyphens)
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const title = watch('title');
-                      if (title) {
-                        const slug = title.toLowerCase()
-                          .replace(/[^a-z0-9\s]/g, '')
-                          .replace(/\s+/g, '-')
-                          .trim();
-                        setValue('slug', slug);
-                      }
-                    }}
-                    className="text-xs text-primary-600 hover:text-primary-700 mt-1"
-                  >
-                    Generate from title
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2">Excerpt</label>
-                  <textarea
-                    {...register('excerpt')}
-                    className="input-field resize-none"
-                    rows="3"
-                    placeholder="Short description for project cards and listings..."
-                  />
-                  {errors.excerpt && <p className="text-red-500 text-sm mt-1">{errors.excerpt.message}</p>}
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Brief summary (recommended: 100-200 characters)
-                  </p>
-                </div>
-
-                {/* Rich Text Description */}
-                <div>
-                  <label className="block font-medium mb-3">Description</label>
-                  <RichTextEditor
-                    value={description}
-                    onChange={setDescription}
-                    placeholder="Write a detailed project description. You can use formatting, lists, and links..."
-                    minHeight="250px"
-                  />
-                  {!description && (
-                    <p className="text-red-500 text-sm mt-1">Description is required</p>
-                  )}
-                </div>
-
-                {/* Media Uploader - Images & Videos */}
-                <div>
-                  <label className="block font-medium mb-3">Media (Images & Videos)</label>
-                  <MediaUploader 
-                    media={media} 
-                    onChange={setMedia}
-                    maxFiles={10}
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2">Demo URL</label>
-                  <input
-                    {...register('demo_url')}
-                    className="input-field"
-                    placeholder="https://demo.example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-2">GitHub URL</label>
-                  <input
-                    {...register('github_url')}
-                    className="input-field"
-                    placeholder="https://github.com/username/repo"
-                  />
-                </div>
-
-                {/* Tech Stack Input with Autocomplete */}
-                <div>
-                  <label className="block font-medium mb-3">Tech Stack</label>
-                  <TechStackInput 
-                    value={techStack}
-                    onChange={setTechStack}
-                  />
-                </div>
-
-                {/* Order & Published Settings */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-2">Display Order</label>
-                    <input
-                      type="number"
-                      {...register('order')}
-                      className="input-field"
-                      placeholder="0"
-                      min="0"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Lower number = shows first (0, 1, 2, 3...)
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block font-medium mb-2">Status</label>
-                    <div className="flex items-center h-10">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          {...register('published')}
-                          className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                          defaultChecked
-                        />
-                        <span className="text-sm font-medium">
-                          Published (visible to public)
-                        </span>
-                      </label>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Uncheck to save as draft (hidden)
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button type="submit" className="btn-primary flex-1">
-                    {editingProject ? 'Update' : 'Create'}
-                  </button>
-                  <button type="button" onClick={handleCancel} className="btn-secondary flex-1">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* Projects List */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -503,7 +203,7 @@ const AdminPortfolio = () => {
                 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleEdit(project)}
+                    onClick={() => navigate(`/admin/portfolio/edit/${project.id}`)}
                     className="btn-secondary flex items-center gap-1 text-sm flex-1"
                   >
                     <FiEdit /> Edit

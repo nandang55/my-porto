@@ -1,25 +1,34 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { FiExternalLink, FiGithub, FiMail, FiLinkedin, FiTwitter, FiInstagram, FiGlobe, FiMapPin, FiPhone, FiDownload, FiBriefcase, FiClock, FiEye } from 'react-icons/fi';
+import { useParams, Link, useLocation } from 'react-router-dom';
+import { FiMail, FiLinkedin, FiTwitter, FiInstagram, FiGlobe, FiMapPin, FiPhone, FiDownload, FiBriefcase, FiClock, FiEye, FiHome, FiGithub } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
-import MediaGallery from '../components/MediaGallery';
+import ProjectCard from '../components/ProjectCard';
 import TechTag from '../components/TechTag';
 import SearchBar from '../components/SearchBar';
 import TenantNavbar from '../components/TenantNavbar';
-import { getTextPreview, stripHtml } from '../utils/textHelpers';
+import LandingPageRenderer from '../components/LandingPageRenderer';
+import { stripHtml } from '../utils/textHelpers';
 import { setFavicon, resetFavicon } from '../utils/faviconHelper';
 
 const PublicPortfolio = () => {
   const { slug } = useParams();
+  const location = useLocation();
   const [portfolio, setPortfolio] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [notFound, setNotFound] = useState(false);
+  const [hasLandingPage, setHasLandingPage] = useState(false);
 
   useEffect(() => {
     fetchPortfolioData();
   }, [slug]);
+
+  useEffect(() => {
+    if (portfolio?.user_id) {
+      checkLandingPage();
+    }
+  }, [portfolio]);
 
   // Apply theme colors as CSS variables
   useEffect(() => {
@@ -108,6 +117,29 @@ const PublicPortfolio = () => {
     }
   };
 
+  const checkLandingPage = async () => {
+    if (!portfolio?.user_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('landing_pages')
+        .select('id')
+        .eq('user_id', portfolio.user_id)
+        .eq('is_active', true)
+        .limit(1);
+
+      console.log('Tenant landing page check:', { data, error, userId: portfolio.user_id });
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking tenant landing page:', error);
+      }
+
+      setHasLandingPage(data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking tenant landing page:', error);
+    }
+  };
+
   // Filter projects based on search query
   const filteredProjects = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -152,6 +184,22 @@ const PublicPortfolio = () => {
             Go to Homepage
           </Link>
         </div>
+      </div>
+    );
+  }
+
+  // Check if we're on the home route and tenant has a landing page
+  const isHomeRoute = location.pathname === `/${slug}`;
+  const shouldShowLandingPage = isHomeRoute && hasLandingPage;
+
+  if (shouldShowLandingPage) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        {/* Navigation */}
+        <TenantNavbar portfolio={portfolio} />
+        
+        {/* Landing Page Content */}
+        <LandingPageRenderer tenantSlug={slug} />
       </div>
     );
   }
@@ -246,6 +294,22 @@ const PublicPortfolio = () => {
             <p className="max-w-2xl mx-auto text-lg opacity-80 mb-8">{portfolio.bio}</p>
           )}
 
+          {/* Download CV Button */}
+          {portfolio.resume_url && (
+            <div className="flex justify-center mb-6">
+              <a
+                href={portfolio.resume_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 hover:bg-gray-100 rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg"
+              >
+                <FiDownload size={20} />
+                <span>Download CV</span>
+              </a>
+            </div>
+          )}
+
           {/* Contact & Social Links */}
           <div className="flex justify-center gap-3 flex-wrap mb-6">
             {portfolio.email && (
@@ -321,17 +385,6 @@ const PublicPortfolio = () => {
                 <FiGlobe size={20} />
               </a>
             )}
-            {portfolio.resume_url && (
-              <a
-                href={portfolio.resume_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                title="Download Resume"
-              >
-                <FiDownload size={20} />
-              </a>
-            )}
           </div>
 
           {/* Location & Timezone */}
@@ -367,131 +420,19 @@ const PublicPortfolio = () => {
           />
         )}
 
-        {/* Projects List - Alternating Layout */}
+        {/* Projects List - Using ProjectCard Component */}
         {filteredProjects.length > 0 ? (
           <div className="max-w-6xl mx-auto space-y-12">
-            {filteredProjects.map((project, index) => {
-              const media = project.media && project.media.length > 0 
-                ? project.media 
-                : project.image 
-                  ? [{ type: 'image', url: project.image, thumbnail: project.image, featured: true }]
-                  : [];
-
-              const isEven = index % 2 === 0;
-
-              return (
-                <div 
-                  key={project.id}
-                  className="group relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500"
-                  style={{ 
-                    animation: `fadeInUp 0.6s ease-out ${index * 0.15}s both` 
-                  }}
-                >
-                  <div className={`grid md:grid-cols-2 gap-0 ${isEven ? '' : 'md:flex-row-reverse'}`}>
-                    {/* Media Section */}
-                    <div className={`relative overflow-hidden ${isEven ? 'md:order-1' : 'md:order-2'}`}>
-                      {media.length > 0 ? (
-                        <div className="h-full min-h-[300px] p-4 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50">
-                          <div className="w-full">
-                            <MediaGallery media={media} title={project.title} />
-                          </div>
-                        </div>
-                      ) : (
-                        <div 
-                          className="h-full min-h-[300px] flex items-center justify-center"
-                          style={{
-                            background: `linear-gradient(to bottom right, ${portfolio.theme_color || '#0284c7'}, ${portfolio.theme_color || '#0284c7'}dd)`
-                          }}
-                        >
-                          <span className="text-white text-6xl opacity-20">📁</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content Section */}
-                    <div className={`p-6 md:p-8 flex flex-col justify-between ${isEven ? 'md:order-2' : 'md:order-1'}`}>
-                      <div className="min-w-0">
-                        <h3 
-                          className="text-2xl md:text-3xl font-bold mb-4 transition-colors break-words"
-                          style={{
-                            '--hover-color': portfolio.theme_color || '#0284c7'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.color = portfolio.theme_color || '#0284c7'}
-                          onMouseLeave={(e) => e.currentTarget.style.color = ''}
-                        >
-                          {project.title}
-                        </h3>
-
-                        <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed break-words">
-                          {project.excerpt || getTextPreview(project.description, 250)}
-                        </p>
-
-                        {project.tech_stack && project.tech_stack.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {project.tech_stack.map((tech, techIndex) => (
-                              <TechTag key={techIndex} tech={tech} size="sm" />
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Meta Info */}
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
-                          <div className="flex items-center gap-1">
-                            <FiEye size={14} />
-                            <span>{project.view_count || 0} views</span>
-                          </div>
-                          <span>•</span>
-                          <span>{new Date(project.created_at).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <Link
-                          to={`/${slug}/project/${project.slug}`}
-                          className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl transition-all hover:scale-105 font-medium shadow-lg"
-                        >
-                          <FiExternalLink size={18} /> View Details
-                        </Link>
-                        {project.demo_url && (
-                          <a
-                            href={project.demo_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 flex items-center justify-center gap-2 py-3 px-5 text-white rounded-xl transition-all hover:scale-105 font-medium shadow-lg"
-                            style={{
-                              backgroundColor: portfolio.theme_color || '#0284c7'
-                            }}
-                            onMouseEnter={(e) => {
-                              const color = portfolio.theme_color || '#0284c7';
-                              const hex = color.replace('#', '');
-                              const r = Math.max(0, parseInt(hex.substring(0, 2), 16) - 20);
-                              const g = Math.max(0, parseInt(hex.substring(2, 4), 16) - 20);
-                              const b = Math.max(0, parseInt(hex.substring(4, 6), 16) - 20);
-                              e.currentTarget.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = portfolio.theme_color || '#0284c7';
-                            }}
-                          >
-                            <FiExternalLink size={18} /> Live Demo
-                          </a>
-                        )}
-                        {project.github_url && (
-                          <a
-                            href={project.github_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-xl transition-all hover:scale-105 font-medium shadow-lg"
-                          >
-                            <FiGithub size={18} /> Source Code
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {filteredProjects.map((project, index) => (
+              <ProjectCard 
+                key={project.id}
+                project={project}
+                index={index}
+                showAnimation={true}  // Enable animations for tenant portfolio page
+                baseUrl={`/${slug}`} // Use tenant slug as base URL
+                showViewDetails={true} // Show View Details button for tenant portfolio
+              />
+            ))}
           </div>
         ) : (
           <div className="text-center py-16">
