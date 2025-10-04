@@ -559,8 +559,9 @@ const Settings = () => {
                 <p className="text-xs text-yellow-800 dark:text-yellow-200 flex items-start gap-2">
                   <span className="text-base">⏰</span>
                   <span>
-                    <strong>Perhatian:</strong> Subdomain memerlukan setup manual dan akan aktif dalam waktu <strong>2x24 jam</strong> setelah slug dibuat atau diubah. 
-                    Mohon maaf atas ketidaknyamanan ini. Sementara waktu, gunakan Portfolio URL (Path) di atas untuk mengakses portfolio Anda.
+                    <strong>Subdomain Setup:</strong> Currently, subdomain activation requires manual configuration and takes approximately <strong>48 hours</strong> to become active. 
+                    This is a temporary limitation while we're using the free hosting plan. We're working on upgrading to a premium plan that will enable instant subdomain activation. 
+                    In the meantime, you can use the Portfolio URL (Path) above to access your portfolio immediately.
                   </span>
                 </p>
               </div>
