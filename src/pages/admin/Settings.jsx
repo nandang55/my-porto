@@ -1519,6 +1519,18 @@ const Settings = () => {
                 </p>
               </div>
 
+              {/* Warning Message */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+                <p className="text-xs text-yellow-800 dark:text-yellow-200 flex items-start gap-2">
+                  <span className="text-base">⏰</span>
+                  <span>
+                    <strong>Custom Domain Setup:</strong> Currently, custom domain configuration requires manual setup and takes approximately <strong>48 hours</strong> to become active. 
+                    This is a temporary limitation while we're using the free hosting plan. We're working on upgrading to a premium plan that will enable instant custom domain activation. 
+                    In the meantime, you can use the Portfolio URL (Path) or Subdomain URL to access your portfolio immediately.
+                  </span>
+                </p>
+              </div>
+
               {/* Instructions */}
               <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                 <h3 className="font-bold mb-3 text-yellow-900 dark:text-yellow-300">
