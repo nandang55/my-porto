@@ -34,9 +34,17 @@ import Settings from './pages/admin/Settings';
 const SubdomainRouter = ({ children }) => {
   const subdomain = getSubdomain();
   
+  // Debug logging
+  console.log('=== SubdomainRouter Debug ===');
+  console.log('Hostname:', window.location.hostname);
+  console.log('Pathname:', window.location.pathname);
+  console.log('Detected subdomain:', subdomain);
+  console.log('Using subdomain routing:', !!subdomain);
+  console.log('============================');
+  
   // If subdomain detected, render tenant routes only
   if (subdomain) {
-    console.log('Subdomain detected:', subdomain, '- Using subdomain routing');
+    console.log('✅ Subdomain mode activated for:', subdomain);
     return (
       <Routes>
         {/* Root path on subdomain goes to landing page */}
@@ -60,6 +68,7 @@ const SubdomainRouter = ({ children }) => {
   }
   
   // No subdomain: render normal routes
+  console.log('ℹ️ Normal routing mode (no subdomain)');
   return children;
 };
 
