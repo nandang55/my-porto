@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { FiMail, FiTrash2 } from 'react-icons/fi';
 import { supabase } from '../../services/supabase';
 import BackButton from '../../components/BackButton';
+import SearchBar from '../../components/SearchBar';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useAlert } from '../../context/AlertContext';
 import { useAuth } from '../../context/AuthContext';
@@ -9,12 +10,31 @@ import { useAuth } from '../../context/AuthContext';
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const alert = useAlert();
   const { user } = useAuth();
 
   useEffect(() => {
     fetchMessages();
   }, []);
+
+  // Filter messages based on search query
+  const filteredMessages = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return messages;
+    }
+
+    const query = searchQuery.toLowerCase();
+
+    return messages.filter((message) => {
+      const nameMatch = message.name?.toLowerCase().includes(query);
+      const emailMatch = message.email?.toLowerCase().includes(query);
+      const subjectMatch = message.subject?.toLowerCase().includes(query);
+      const messageMatch = message.message?.toLowerCase().includes(query);
+
+      return nameMatch || emailMatch || subjectMatch || messageMatch;
+    });
+  }, [messages, searchQuery]);
 
   const fetchMessages = async () => {
     if (!user) return;
@@ -65,8 +85,20 @@ const AdminMessages = () => {
           <h1 className="text-3xl font-bold">Contact Messages</h1>
         </div>
 
-        <div className="space-y-4">
-          {messages.map((message) => (
+        {/* Search Bar */}
+        <div className="mb-8">
+          <SearchBar
+            onSearch={setSearchQuery}
+            placeholder="Search messages by name, email, subject, or content..."
+            resultCount={filteredMessages.length}
+            resultType="messages"
+          />
+        </div>
+
+        {/* Messages List */}
+        {filteredMessages.length > 0 ? (
+          <div className="space-y-4">
+          {filteredMessages.map((message) => (
             <div key={message.id} className="card">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -94,9 +126,24 @@ const AdminMessages = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {messages.length === 0 && (
+          </div>
+        ) : searchQuery.trim() ? (
+          <div className="text-center py-16">
+            <div className="max-w-md mx-auto">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-2xl font-bold mb-2">No messages found</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                No messages match "{searchQuery}". Try different keywords or clear search.
+              </p>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="btn-primary"
+              >
+                Clear Search
+              </button>
+            </div>
+          </div>
+        ) : (
           <div className="text-center py-12 text-gray-500">
             No messages yet.
           </div>
