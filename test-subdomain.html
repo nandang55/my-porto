@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subdomain Helper Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; }
+    h2 { color: #666; font-size: 18px; margin-bottom: 10px; }
+    .result { 
+      background: #f0f0f0; 
+      padding: 10px; 
+      border-radius: 4px; 
+      font-family: monospace;
+      margin: 10px 0;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>🌐 Subdomain Helper Test Tool</h1>
+  
+  <div class="card">
+    <h2>Current Environment</h2>
+    <div class="result">
+      <strong>Hostname:</strong> <span id="current-hostname"></span><br>
+      <strong>Protocol:</strong> <span id="current-protocol"></span><br>
+      <strong>Port:</strong> <span id="current-port"></span><br>
+      <strong>Full URL:</strong> <span id="current-url"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Subdomain Detection</h2>
+    <div id="subdomain-result" class="result"></div>
+  </div>
+
+  <div class="card">
+    <h2>Test Custom Hostname</h2>
+    <input 
+      type="text" 
+      id="test-hostname" 
+      placeholder="e.g., poppy.porto.bagdja.com"
+      value="poppy.porto.bagdja.com"
+    >
+    <button onclick="testCustomHostname()">Test</button>
+    <div id="test-result" class="result" style="margin-top: 10px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Test Cases</h2>
+    <div id="test-cases"></div>
+  </div>
+
+  <script>
+    // Copy subdomain helper logic
+    function getSubdomainFromHostname(hostname) {
+      // Handle localhost and IP addresses
+      if (
+        hostname === 'localhost' || 
+        hostname.includes('127.0.0.1') || 
+        hostname.includes('192.168.') ||
+        /^\d+\.\d+\.\d+\.\d+$/.test(hostname)
+      ) {
+        return null;
+      }
+      
+      const parts = hostname.split('.');
+      
+      if (parts.length < 3) {
+        return null;
+      }
+      
+      const potentialSubdomain = parts[0];
+      const excludedSubdomains = ['www', 'porto', 'admin', 'api', 'cdn', 'assets'];
+      
+      if (excludedSubdomains.includes(potentialSubdomain)) {
+        return null;
+      }
+      
+      return potentialSubdomain;
+    }
+
+    // Display current environment
+    document.getElementById('current-hostname').textContent = window.location.hostname;
+    document.getElementById('current-protocol').textContent = window.location.protocol;
+    document.getElementById('current-port').textContent = window.location.port || '(default)';
+    document.getElementById('current-url').textContent = window.location.href;
+
+    // Detect current subdomain
+    const subdomain = getSubdomainFromHostname(window.location.hostname);
+    const resultDiv = document.getElementById('subdomain-result');
+    
+    if (subdomain) {
+      resultDiv.className = 'result success';
+      resultDiv.innerHTML = `
+        <strong>✅ Subdomain Detected:</strong> "${subdomain}"<br>
+        <small>This would route to tenant: ${subdomain}</small>
+      `;
+    } else {
+      resultDiv.className = 'result info';
+      resultDiv.innerHTML = `
+        <strong>ℹ️ No Subdomain:</strong> Using main domain or localhost<br>
+        <small>This would show main application routes</small>
+      `;
+    }
+
+    // Test custom hostname
+    function testCustomHostname() {
+      const hostname = document.getElementById('test-hostname').value;
+      const result = getSubdomainFromHostname(hostname);
+      const resultDiv = document.getElementById('test-result');
+      
+      if (result) {
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `<strong>✅ Result:</strong> Subdomain = "${result}"`;
+      } else {
+        resultDiv.className = 'result info';
+        resultDiv.innerHTML = `<strong>ℹ️ Result:</strong> No subdomain detected`;
+      }
+    }
+
+    // Run test cases
+    const testCases = [
+      { input: 'poppy.porto.bagdja.com', expected: 'poppy' },
+      { input: 'john.porto.bagdja.com', expected: 'john' },
+      { input: 'porto.bagdja.com', expected: null },
+      { input: 'www.porto.bagdja.com', expected: null },
+      { input: 'localhost', expected: null },
+      { input: 'localhost:5173', expected: null },
+      { input: '127.0.0.1', expected: null },
+      { input: 'admin.porto.bagdja.com', expected: null },
+      { input: 'api.porto.bagdja.com', expected: null },
+      { input: 'test-user.porto.bagdja.com', expected: 'test-user' },
+      { input: 'my_portfolio.porto.bagdja.com', expected: 'my_portfolio' }
+    ];
+
+    const testCasesDiv = document.getElementById('test-cases');
+    let html = '<table style="width: 100%; border-collapse: collapse;">';
+    html += '<tr style="background: #f0f0f0;"><th style="padding: 8px; text-align: left;">Input</th><th style="padding: 8px; text-align: left;">Expected</th><th style="padding: 8px; text-align: left;">Result</th><th style="padding: 8px; text-align: left;">Status</th></tr>';
+    
+    testCases.forEach(test => {
+      const result = getSubdomainFromHostname(test.input);
+      const passed = result === test.expected;
+      const status = passed ? '✅ Pass' : '❌ Fail';
+      const statusColor = passed ? '#d4edda' : '#f8d7da';
+      
+      html += `<tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 8px; font-family: monospace; font-size: 12px;">${test.input}</td>
+        <td style="padding: 8px; font-family: monospace; font-size: 12px;">${test.expected === null ? 'null' : test.expected}</td>
+        <td style="padding: 8px; font-family: monospace; font-size: 12px;">${result === null ? 'null' : result}</td>
+        <td style="padding: 8px; background: ${statusColor};">${status}</td>
+      </tr>`;
+    });
+    
+    html += '</table>';
+    testCasesDiv.innerHTML = html;
+  </script>
+</body>
+</html>
+

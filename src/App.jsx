@@ -5,6 +5,7 @@ import { AlertProvider } from './context/AlertContext';
 import { TenantProvider } from './context/TenantContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import { getSubdomain } from './utils/subdomainHelper';
 
 // Public Pages
 import Home from './pages/Home';
@@ -29,6 +30,39 @@ import BlogForm from './pages/admin/BlogForm';
 import AdminMessages from './pages/admin/AdminMessages';
 import Settings from './pages/admin/Settings';
 
+// Subdomain Router Component
+const SubdomainRouter = ({ children }) => {
+  const subdomain = getSubdomain();
+  
+  // If subdomain detected, render tenant routes only
+  if (subdomain) {
+    console.log('Subdomain detected:', subdomain, '- Using subdomain routing');
+    return (
+      <Routes>
+        {/* Root path on subdomain goes to landing page */}
+        <Route path="/" element={<LandingPageRenderer tenantSlug={subdomain} />} />
+        
+        {/* Tenant-specific routes */}
+        <Route path="/projects" element={<PublicPortfolio />} />
+        <Route path="/project/:slug" element={<TenantProjectDetail />} />
+        <Route path="/blog" element={<TenantBlog />} />
+        <Route path="/blog/:slug" element={<TenantBlogDetail />} />
+        <Route path="/about" element={<TenantAbout />} />
+        <Route path="/contact" element={<TenantContact />} />
+        
+        {/* Admin routes still accessible on subdomain */}
+        <Route path="/admin/*" element={children} />
+        
+        {/* Catch-all: redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+  
+  // No subdomain: render normal routes
+  return children;
+};
+
 function App() {
   return (
     <ThemeProvider>
@@ -36,7 +70,8 @@ function App() {
         <AlertProvider>
           <Router>
             <TenantProvider>
-              <Routes>
+              <SubdomainRouter>
+                <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Layout><Home /></Layout>} />
                 <Route path="/landing" element={<LandingPageRenderer />} />
@@ -154,6 +189,7 @@ function App() {
                   }
                 />
               </Routes>
+              </SubdomainRouter>
             </TenantProvider>
           </Router>
         </AlertProvider>

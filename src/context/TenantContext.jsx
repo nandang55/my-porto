@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
+import { getSubdomain, isSubdomain } from '../utils/subdomainHelper';
 
 const TenantContext = createContext();
 
@@ -31,22 +32,16 @@ export const TenantProvider = ({ children }) => {
 
     let slug = null;
 
-    // Method 1: Detect from subdomain (e.g., nandang.porto.bagdja.com)
-    const hostname = window.location.hostname;
-    const parts = hostname.split('.');
-    
-    // Check if subdomain pattern: {slug}.porto.bagdja.com
-    if (parts.length >= 3 && parts[parts.length - 3] === 'porto' && parts[parts.length - 2] === 'bagdja') {
-      slug = parts[0]; // First part is the slug
+    // Method 1: Detect from subdomain (Priority)
+    const subdomain = getSubdomain();
+    if (subdomain) {
+      slug = subdomain;
+      console.log('Detected tenant from subdomain:', slug);
     } 
-    // Check for other subdomain patterns (not localhost, not www)
-    else if (parts.length >= 3 && parts[0] !== 'www' && parts[0] !== 'localhost') {
-      slug = parts[0];
-    }
-    // Method 2: Detect from path (e.g., /nandang)
+    // Method 2: Detect from path (Fallback)
     else {
       const pathParts = location.pathname.split('/').filter(Boolean);
-      const knownRoutes = ['portfolio', 'blog', 'about', 'contact'];
+      const knownRoutes = ['about', 'contact'];
       
       if (pathParts.length === 0 || knownRoutes.includes(pathParts[0])) {
         setCurrentTenant(null);
@@ -55,6 +50,7 @@ export const TenantProvider = ({ children }) => {
       }
       
       slug = pathParts[0];
+      console.log('Detected tenant from path:', slug);
     }
 
     if (!slug) {
