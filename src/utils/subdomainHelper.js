@@ -18,6 +18,8 @@ export const getSubdomain = () => {
   
   const hostname = window.location.hostname;
   
+  console.log('[SubdomainHelper] Checking hostname:', hostname);
+  
   // Handle localhost and IP addresses
   if (
     hostname === 'localhost' || 
@@ -25,29 +27,41 @@ export const getSubdomain = () => {
     hostname.includes('192.168.') ||
     /^\d+\.\d+\.\d+\.\d+$/.test(hostname) // IP address pattern
   ) {
+    console.log('[SubdomainHelper] Localhost detected - no subdomain');
+    return null;
+  }
+  
+  // Handle Vercel preview URLs (e.g., my-porto-git-main-user.vercel.app)
+  if (hostname.includes('.vercel.app')) {
+    console.log('[SubdomainHelper] Vercel preview URL - no subdomain');
     return null;
   }
   
   // Split hostname into parts
   const parts = hostname.split('.');
+  console.log('[SubdomainHelper] Hostname parts:', parts);
   
   // Need at least 3 parts for subdomain: [subdomain].[domain].[tld]
   // Or 4+ for: [subdomain].[domain].[domain].[tld] (e.g., poppy.porto.bagdja.com)
   if (parts.length < 3) {
+    console.log('[SubdomainHelper] Not enough parts for subdomain');
     return null;
   }
   
   // Get first part (potential subdomain)
   const potentialSubdomain = parts[0];
+  console.log('[SubdomainHelper] Potential subdomain:', potentialSubdomain);
   
   // Exclude common non-tenant subdomains
   const excludedSubdomains = ['www', 'porto', 'admin', 'api', 'cdn', 'assets'];
   
   if (excludedSubdomains.includes(potentialSubdomain)) {
+    console.log('[SubdomainHelper] Subdomain excluded:', potentialSubdomain);
     return null;
   }
   
   // Valid subdomain found
+  console.log('[SubdomainHelper] ✅ Valid subdomain found:', potentialSubdomain);
   return potentialSubdomain;
 };
 
