@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { FiLock, FiMail, FiUser } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
@@ -317,13 +317,12 @@ const Login = () => {
             ) : (
               <>
                 Don't have an account?{' '}
-                <button
-                  type="button"
-                  onClick={toggleMode}
+                <Link
+                  to="/admin/register"
                   className="text-primary-600 dark:text-primary-400 font-medium hover:underline"
                 >
                   Sign up
-                </button>
+                </Link>
               </>
             )}
           </p>

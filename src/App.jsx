@@ -21,6 +21,7 @@ import LandingPageRenderer from './components/LandingPageRenderer';
 
 // Admin Pages
 import Login from './pages/admin/Login';
+import Register from './pages/admin/Register';
 import Dashboard from './pages/admin/Dashboard';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
 import AdminPortfolio from './pages/admin/AdminPortfolio';
@@ -89,6 +90,7 @@ function App() {
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />
+            <Route path="/admin/register" element={<Register />} />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route
               path="/admin/dashboard"
