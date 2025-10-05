@@ -46,19 +46,19 @@ const Contact = () => {
     {
       icon: FiMail,
       title: 'Email',
-      value: 'your.email@example.com',
-      link: 'mailto:your.email@example.com',
+      value: 'contact@bagdja.com',
+      link: 'mailto:contact@bagdja.com',
     },
     {
       icon: FiPhone,
-      title: 'Phone',
-      value: '+1 (555) 123-4567',
-      link: 'tel:+15551234567',
+      title: 'Phone / WhatsApp',
+      value: '+62 877-2453-8083',
+      link: 'https://wa.me/6287724538083',
     },
     {
       icon: FiMapPin,
       title: 'Location',
-      value: 'San Francisco, CA',
+      value: 'West Java - Indonesia',
       link: null,
     },
   ];
