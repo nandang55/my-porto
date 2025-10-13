@@ -95,7 +95,9 @@ const TechStackInput = ({ value = [], onChange }) => {
 
   const addTech = (techName) => {
     if (techName && !value.includes(techName)) {
-      onChange([...value, techName]);
+      if (typeof onChange === 'function') {
+        onChange([...value, techName]);
+      }
       setInputValue('');
       setShowSuggestions(false);
       inputRef.current?.focus();
@@ -103,7 +105,9 @@ const TechStackInput = ({ value = [], onChange }) => {
   };
 
   const removeTech = (techToRemove) => {
-    onChange(value.filter((tech) => tech !== techToRemove));
+    if (typeof onChange === 'function') {
+      onChange(value.filter((tech) => tech !== techToRemove));
+    }
   };
 
   const handleInputKeyDown = (e) => {
