@@ -473,3 +473,4 @@ supabase db seed                       # Run seed file
 supabase gen types typescript --linked > src/types/supabase.ts
 ```
 
+

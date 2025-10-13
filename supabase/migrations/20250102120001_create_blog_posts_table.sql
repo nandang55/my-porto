@@ -60,3 +60,4 @@ comment on table public.blog_posts is 'Blog posts and articles';
 comment on column public.blog_posts.slug is 'URL-friendly unique identifier';
 comment on column public.blog_posts.published is 'Whether the post is published and visible to public';
 
+

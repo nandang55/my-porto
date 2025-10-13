@@ -170,3 +170,4 @@ Gunakan untuk testing dan development.
 - [Database Migrations Guide](https://supabase.com/docs/guides/cli/managing-migrations)
 - [SQL Tutorial](https://supabase.com/docs/guides/database/overview)
 
+

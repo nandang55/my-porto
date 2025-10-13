@@ -385,3 +385,4 @@ Untuk portfolio website ini, **Supabase lebih cocok** karena:
 
 Tapi jika Anda butuh complex backend logic, Laravel tetap pilihan yang sangat baik! 🚀
 
+

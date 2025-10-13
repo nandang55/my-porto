@@ -45,3 +45,4 @@ create index projects_created_at_idx on public.projects(created_at desc);
 comment on table public.projects is 'Portfolio projects showcase';
 comment on column public.projects.tech_stack is 'Array of technologies used in the project';
 
+

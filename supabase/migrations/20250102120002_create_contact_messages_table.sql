@@ -44,3 +44,4 @@ create index contact_messages_read_idx on public.contact_messages(read) where re
 comment on table public.contact_messages is 'Contact form submissions from website visitors';
 comment on column public.contact_messages.read is 'Whether the message has been read by admin';
 
+

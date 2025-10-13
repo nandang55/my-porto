@@ -253,8 +253,8 @@ const ProjectForm = () => {
           <div className="card">
             <h2 className="text-xl font-semibold mb-4">Tech Stack</h2>
             <TechStackInput
-              techStack={techStack}
-              setTechStack={setTechStack}
+              value={techStack}
+              onChange={setTechStack}
             />
           </div>
 

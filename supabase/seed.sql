@@ -186,3 +186,4 @@ select 'Projects created: ' || count(*)::text from public.projects;
 select 'Blog posts created: ' || count(*)::text from public.blog_posts;
 select 'Messages created: ' || count(*)::text from public.contact_messages;
 
+
